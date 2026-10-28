@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary-navy: #173563;
+  --color-deep-navy: #102747;
+  --color-warm-gold: #F4D36B;
+  --color-soft-cream: #FFF2BF;
+  --color-clean-ivory: #FFFAE9;
+  --color-supporting-blue: #3F6FA8;
+  --color-slate-text: #344054;
+}
