@@ -16,10 +16,9 @@ import {
   FolderTree
 } from 'lucide-react';
 import { ConfirmDialog, useFeedback } from '../components/Feedback';
-import { courseTypeLabel, formatCoursePrice, isFreeCourse } from '../utils/courseAccess';
+import { courseTypeLabel, formatCoursePrice, isFreeCourse, resolveThumbnailUrl, PLACEHOLDER_THUMB } from '../utils/courseAccess';
 import { openMaterial } from '../utils/materialAccess';
-
-const PLACEHOLDER_THUMB = '/course-placeholder.svg';
+import { Image as ImageIcon } from 'lucide-react';
 
 const emptyCourseForm = () => ({
   title: '',
@@ -48,6 +47,9 @@ const CourseManagementPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [savingCourse, setSavingCourse] = useState(false);
   const [busyMaterialId, setBusyMaterialId] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState('');
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const { notify, confirm } = useFeedback();
 
   // Basic course form state
@@ -103,6 +105,8 @@ const CourseManagementPage = () => {
   const handleOpenAdd = () => {
     setEditingCourse(null);
     setFormData({ ...emptyCourseForm(), category: categories[0]?._id || '' });
+    setThumbnailFile(null);
+    setThumbnailPreview('');
     setModuleHeadings(['Module 1: Introduction & Fundamentals']);
     setExistingModuleIds([]);
     setModulesToDelete([]);
@@ -130,6 +134,8 @@ const CourseManagementPage = () => {
       isFree: course.isFree !== undefined ? course.isFree : true,
       status: course.status || 'published'
     });
+    setThumbnailFile(null);
+    setThumbnailPreview(course.thumbnail ? resolveThumbnailUrl(course.thumbnail) : '');
     setPendingNewPdfs([]);
     setExistingMaterials([]);
     setModuleHeadings(['']);
@@ -218,7 +224,50 @@ const CourseManagementPage = () => {
     setModulesToDelete([]);
   };
 
-  // Staging new PDF file selection in the form
+  // Handle image file selection for course thumbnail
+  const handleThumbnailSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      notify({
+        type: 'error',
+        message: 'Invalid file format. Please upload JPG, JPEG, PNG, or WebP.'
+      });
+      return;
+    }
+
+    // Validate size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      notify({
+        type: 'error',
+        message: 'Image size exceeds maximum limit of 5MB.'
+      });
+      return;
+    }
+
+    setThumbnailFile(file);
+    const localPreviewUrl = URL.createObjectURL(file);
+    setThumbnailPreview(localPreviewUrl);
+  };
+
+  // Remove thumbnail
+  const handleRemoveThumbnail = async () => {
+    setThumbnailFile(null);
+    setThumbnailPreview('');
+    setFormData((prev) => ({ ...prev, thumbnail: '', thumbnailImage: undefined }));
+
+    if (editingCourse?._id && editingCourse.thumbnail) {
+      try {
+        await api.delete(`/courses/thumbnail/${editingCourse._id}`);
+        notify({ type: 'success', message: 'Thumbnail removed from course.' });
+      } catch (err) {
+        console.warn('Thumbnail deletion notification:', err);
+      }
+    }
+  };
   const handleFilesSelect = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -317,6 +366,30 @@ const CourseManagementPage = () => {
     try {
       let savedCourseId = editingCourse?._id;
 
+      // If a new thumbnail file was chosen, upload it to MongoDB first
+      let uploadedThumbnailUrl = formData.thumbnail;
+      let uploadedImageId = formData.thumbnailImage;
+
+      if (thumbnailFile) {
+        setUploadingThumbnail(true);
+        const imgForm = new FormData();
+        imgForm.append('thumbnail', thumbnailFile);
+        if (savedCourseId) {
+          imgForm.append('courseId', savedCourseId);
+        }
+
+        const imgRes = await api.post('/courses/thumbnail/upload', imgForm, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (imgRes.data?.success) {
+          uploadedThumbnailUrl = imgRes.data.thumbnailUrl;
+          uploadedImageId = imgRes.data.imageId;
+          payload.thumbnail = uploadedThumbnailUrl;
+          payload.thumbnailImage = uploadedImageId;
+        }
+      }
+
       if (editingCourse) {
         // Update existing course
         const updateRes = await api.put(`/courses/${editingCourse._id}`, payload);
@@ -364,6 +437,7 @@ const CourseManagementPage = () => {
       });
     } finally {
       setSavingCourse(false);
+      setUploadingThumbnail(false);
     }
   };
 
@@ -482,10 +556,10 @@ const CourseManagementPage = () => {
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <img
-                        src={c.thumbnail || PLACEHOLDER_THUMB}
+                        src={resolveThumbnailUrl(c.thumbnail)}
                         alt=""
                         onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PLACEHOLDER_THUMB; }}
-                        className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
+                        className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0 border border-gray-200"
                       />
                       <div>
                         <p className="font-bold text-gray-900 line-clamp-1">{c.title}</p>
@@ -595,26 +669,84 @@ const CourseManagementPage = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Course Thumbnail (URL)</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      placeholder="/uploads/thumbnails/example.svg or a full https:// URL"
-                      value={formData.thumbnail}
-                      onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                      className="flex-1 p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-[#173563]"
-                    />
-                    <img
-                      src={formData.thumbnail || PLACEHOLDER_THUMB}
-                      alt=""
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PLACEHOLDER_THUMB; }}
-                      className="w-12 h-12 rounded-lg object-cover bg-gray-100 border border-gray-200 shrink-0"
-                    />
+                {/* Course Thumbnail Image Upload Component */}
+                <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-semibold text-gray-800 text-xs">
+                      Course Thumbnail Image
+                    </label>
+                    <span className="text-[10px] text-gray-500">
+                      JPG, PNG, WebP (Max 5MB) • Stored in MongoDB
+                    </span>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    Files under /uploads are served by the API; leave empty to use the branded placeholder.
-                  </p>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    {/* Thumbnail Preview Box */}
+                    <div className="relative w-36 h-24 rounded-xl overflow-hidden bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center shrink-0">
+                      {thumbnailPreview ? (
+                        <img
+                          src={thumbnailPreview}
+                          alt="Thumbnail Preview"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = PLACEHOLDER_THUMB;
+                          }}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center p-2 text-gray-400">
+                          <ImageIcon className="w-6 h-6 mx-auto mb-1 opacity-60" />
+                          <span className="text-[10px] block">No thumbnail</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Controls: Browse Files & Remove */}
+                    <div className="space-y-2 flex-1 w-full text-left">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#173563] hover:bg-[#102747] text-white rounded-lg cursor-pointer text-xs font-semibold shadow-xs transition">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{thumbnailPreview ? 'Change Thumbnail' : 'Upload Thumbnail'}</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={handleThumbnailSelect}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {thumbnailPreview && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveThumbnail}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remove Image</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {thumbnailFile && (
+                        <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" />
+                          Selected: {thumbnailFile.name} ({Math.round(thumbnailFile.size / 1024)} KB)
+                        </p>
+                      )}
+
+                      {!thumbnailFile && thumbnailPreview && (
+                        <p className="text-[10px] text-gray-500">
+                          Active thumbnail stored in MongoDB. Click "Change Thumbnail" to replace with a new image.
+                        </p>
+                      )}
+
+                      {!thumbnailPreview && (
+                        <p className="text-[10px] text-gray-400">
+                          Select an image from your computer to store directly in MongoDB. If left blank, the branded placeholder will be shown.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div>

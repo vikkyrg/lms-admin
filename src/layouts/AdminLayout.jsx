@@ -15,7 +15,9 @@ import {
   X,
   GraduationCap,
   UserCheck,
-  FileText
+  FileText,
+  HelpCircle,
+  ClipboardList
 } from 'lucide-react';
 import { FeedbackProvider } from '../components/Feedback';
 
@@ -61,6 +63,8 @@ const AdminLayout = () => {
     { label: 'Course Materials (PDFs)', icon: FileText, path: '/materials' },
     { label: 'Courses', icon: BookOpen, path: '/courses' },
     { label: 'Curriculum Builder', icon: FolderTree, path: '/curriculum' },
+    { label: 'Quizzes', icon: HelpCircle, path: '/quizzes' },
+    { label: 'Assignments & Projects', icon: ClipboardList, path: '/assignments' },
     { label: 'User Directory', icon: Users, path: '/users' },
     { label: 'Payments & Refunds', icon: CreditCard, path: '/payments' },
     { label: 'Audit Logs', icon: Shield, path: '/audit-logs' },

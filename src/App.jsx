@@ -12,6 +12,8 @@ import EnrollmentsManagementPage from './pages/EnrollmentsManagementPage';
 import CourseMaterialsPage from './pages/CourseMaterialsPage';
 import CourseManagementPage from './pages/CourseManagementPage';
 import CurriculumBuilderPage from './pages/CurriculumBuilderPage';
+import QuizManagementPage from './pages/QuizManagementPage';
+import AssignmentManagementPage from './pages/AssignmentManagementPage';
 import UsersManagementPage from './pages/UsersManagementPage';
 import SubmissionsGradingPage from './pages/SubmissionsGradingPage';
 import EnquiriesPage from './pages/EnquiriesPage';
@@ -33,6 +35,8 @@ function App() {
             <Route path="materials" element={<CourseMaterialsPage />} />
             <Route path="courses" element={<CourseManagementPage />} />
             <Route path="curriculum" element={<CurriculumBuilderPage />} />
+            <Route path="quizzes" element={<QuizManagementPage />} />
+            <Route path="assignments" element={<AssignmentManagementPage />} />
             <Route path="users" element={<UsersManagementPage />} />
             <Route path="payments" element={<AdminPaymentsPage />} />
             <Route path="audit-logs" element={<AuditLogsPage />} />

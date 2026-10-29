@@ -24,6 +24,21 @@ export const courseTypeLabel = (course) => (isFreeCourse(course) ? 'Free' : 'Pai
 
 export const formatIndianRupee = (value) => `₹${(Number(value) || 0).toLocaleString('en-IN')}`;
 
+export const PLACEHOLDER_THUMB = '/course-placeholder.svg';
+
+export const resolveThumbnailUrl = (url) => {
+  if (!url || typeof url !== 'string' || !url.trim()) return PLACEHOLDER_THUMB;
+  const trimmed = url.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+  const apiBase = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/api\/v1\/?$/, '');
+  if (trimmed.startsWith('/')) {
+    return `${apiBase}${trimmed}`;
+  }
+  return `${apiBase}/${trimmed}`;
+};
+
 /**
  * Payment column wording for the approvals table.
  * Free enrollments never have (and never need) a payment record.
@@ -48,8 +63,6 @@ export const paymentSummary = (enrollment) => {
       return { label: `${amount} · Failed`, tone: 'danger' };
     case 'refunded':
       return { label: `${amount} · Refunded`, tone: 'danger' };
-    case 'partially_refunded':
-      return { label: `${amount} · Partially refunded`, tone: 'warning' };
     default:
       return { label: `${amount} · ${payment.status}`, tone: 'neutral' };
   }
