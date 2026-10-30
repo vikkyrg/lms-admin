@@ -17,7 +17,10 @@ import {
   UserCheck,
   FileText,
   HelpCircle,
-  ClipboardList
+  ClipboardList,
+  MessageSquareQuote,
+  Video,
+  FolderGit2
 } from 'lucide-react';
 import { FeedbackProvider } from '../components/Feedback';
 
@@ -60,7 +63,7 @@ const AdminLayout = () => {
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Approvals & Access', icon: UserCheck, path: '/enrollments' },
-    { label: 'Course Materials (PDFs)', icon: FileText, path: '/materials' },
+    { label: 'Projects', icon: FolderGit2, path: '/projects' },
     { label: 'Courses', icon: BookOpen, path: '/courses' },
     { label: 'Curriculum Builder', icon: FolderTree, path: '/curriculum' },
     { label: 'Quizzes', icon: HelpCircle, path: '/quizzes' },
@@ -68,6 +71,9 @@ const AdminLayout = () => {
     { label: 'User Directory', icon: Users, path: '/users' },
     { label: 'Payments & Refunds', icon: CreditCard, path: '/payments' },
     { label: 'Audit Logs', icon: Shield, path: '/audit-logs' },
+    { label: 'Testimonials', icon: MessageSquareQuote, path: '/testimonials' },
+    { label: 'Video Testimonials', icon: Video, path: '/video-testimonials' },
+    { label: 'FAQ Management', icon: HelpCircle, path: '/faqs' },
     { label: 'Student Enquiries', icon: MessageSquare, path: '/enquiries' },
     { label: 'Submissions & Grading', icon: FileCheck, path: '/submissions' }
   ];
