@@ -207,15 +207,15 @@ const CourseMaterialsPage = () => {
   const selectedCourse = courses.find(c => c._id === selectedCourseId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-[1200px] mx-auto">
       {/* Top Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileText className="w-7 h-7 text-indigo-600" />
+          <h1 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+            <FileText className="w-5 h-5 text-brand" />
             Course Materials &amp; PDFs
           </h1>
-          <p className="text-sm text-slate-600 mt-1">
+          <p className="text-xs text-ink-soft mt-1">
             Upload and manage study notes, reference sheets, and PDF materials accessible only to approved students during their 3-month access.
           </p>
         </div>
@@ -223,7 +223,7 @@ const CourseMaterialsPage = () => {
         <button
           onClick={() => setShowUploadModal(true)}
           disabled={!selectedCourseId}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition shadow-xs"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-[13px] font-semibold bg-navy text-white hover:bg-navy-deep disabled:opacity-50 transition shadow-sm"
         >
           <Upload className="w-4 h-4" />
           Upload New Material
@@ -231,17 +231,17 @@ const CourseMaterialsPage = () => {
       </div>
 
       {/* Course Selection */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center gap-4">
-        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-          <BookOpen className="w-4 h-4 text-indigo-600" /> Select Course:
+      <div className="bg-surface p-4 rounded-lg border border-line shadow-card flex flex-col md:flex-row md:items-center gap-4">
+        <label className="text-xs font-semibold text-ink-soft uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+          <BookOpen className="w-4 h-4 text-brand" /> Select Course:
         </label>
         {coursesLoading ? (
-          <span className="text-xs text-slate-400">Loading courses...</span>
+          <span className="text-xs text-ink-faint">Loading courses...</span>
         ) : (
           <select
             value={selectedCourseId}
             onChange={(e) => setSelectedCourseId(e.target.value)}
-            className="w-full md:max-w-md text-sm border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+            className="admin-input w-full md:max-w-md cursor-pointer"
           >
             {courses.map((c) => (
               <option key={c._id} value={c._id}>
@@ -253,49 +253,49 @@ const CourseMaterialsPage = () => {
       </div>
 
       {/* Materials List */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="font-bold text-slate-900 text-sm">
+      <div className="bg-surface rounded-lg border border-line shadow-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-line flex items-center justify-between">
+          <h2 className="font-semibold text-ink text-sm">
             Uploaded Materials ({materials.length})
           </h2>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-ink-soft">
             {selectedCourse ? selectedCourse.title : ''}
           </span>
         </div>
 
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mb-3" />
-            <p className="text-sm text-slate-500">Loading materials...</p>
+            <div className="inline-block animate-spin h-6 w-6 border-2 border-brand border-t-transparent rounded-full mb-3" />
+            <p className="text-sm text-ink-soft">Loading materials...</p>
           </div>
         ) : materials.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-            <p className="text-base font-semibold text-slate-700">No materials uploaded yet</p>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <FileText className="w-12 h-12 text-ink-faint mx-auto" />
+            <p className="text-base font-semibold text-ink">No materials uploaded yet</p>
+            <p className="text-xs text-ink-soft max-w-sm mx-auto">
               Add supplementary PDFs, exercises, cheat-sheets, or course notes for approved students to view and download.
             </p>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition"
+              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-brand-soft text-[#2258c9] border border-brand/15 hover:bg-line-soft transition"
             >
               <Plus className="w-3.5 h-3.5" /> Upload First Material
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-line-soft">
             {materials.map((mat) => (
-              <div key={mat._id} className="p-5 flex items-center justify-between hover:bg-slate-50/50 transition gap-4">
+              <div key={mat._id} className="p-5 flex items-center justify-between hover:bg-canvas/60 transition gap-4">
                 <div className="flex items-start gap-3.5 min-w-0">
-                  <div className="p-2.5 rounded-xl bg-red-50 text-red-600 border border-red-200 shrink-0">
+                  <div className="p-2.5 rounded-lg bg-danger-soft text-danger border border-danger/20 shrink-0">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-slate-900 text-sm truncate">{mat.title}</h3>
+                    <h3 className="font-semibold text-ink text-sm truncate">{mat.title}</h3>
                     {mat.description && (
-                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{mat.description}</p>
+                      <p className="text-xs text-ink-soft mt-0.5 line-clamp-1">{mat.description}</p>
                     )}
-                    <div className="flex items-center gap-3 text-xs text-slate-400 mt-1.5 flex-wrap">
+                    <div className="flex items-center gap-3 text-xs text-ink-faint mt-1.5 flex-wrap">
                       <span>File: {mat.fileName || 'document.pdf'}</span>
                       <span>•</span>
                       <span>Size: {formatFileSize(mat.fileSize)}</span>
@@ -304,7 +304,7 @@ const CourseMaterialsPage = () => {
                       {mat.module && (
                         <>
                           <span>•</span>
-                          <span className="text-indigo-600 font-medium">{mat.module}</span>
+                          <span className="text-brand font-medium">{mat.module}</span>
                         </>
                       )}
                     </div>
@@ -315,7 +315,7 @@ const CourseMaterialsPage = () => {
                   <button
                     onClick={() => handleOpenMaterial(mat, true)}
                     disabled={busyMaterialId === mat._id}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-ink bg-surface border border-line hover:bg-canvas transition disabled:opacity-50"
                     title="View Document"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -324,7 +324,7 @@ const CourseMaterialsPage = () => {
                   <button
                     onClick={() => handleOpenMaterial(mat, false)}
                     disabled={busyMaterialId === mat._id}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-[#2258c9] bg-brand-soft border border-brand/15 hover:bg-line-soft transition disabled:opacity-50"
                     title="Download File"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -332,7 +332,7 @@ const CourseMaterialsPage = () => {
                   </button>
                   <button
                     onClick={() => handleDelete(mat)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                    className="p-1.5 text-ink-faint hover:text-danger rounded-md hover:bg-danger-soft transition"
                     title="Delete Material"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -346,28 +346,28 @@ const CourseMaterialsPage = () => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-lg w-full p-5 space-y-4 shadow-overlay border border-line admin-modal-in">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Upload className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-base font-bold text-ink flex items-center gap-2">
+                <Upload className="w-5 h-5 text-brand" />
                 Upload Course Material
               </h3>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-ink-faint hover:text-ink-soft transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-soft">
               Files uploaded here are strictly restricted to students who have been approved by Admin and are within their active 3-month access window.
             </p>
 
             <form onSubmit={handleUploadSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="admin-label">
                   Document Title *
                 </label>
                 <input
@@ -376,12 +376,12 @@ const CourseMaterialsPage = () => {
                   placeholder="e.g., Module 1 - Docker Architecture Cheatsheet"
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                  className="admin-input"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="admin-label">
                   Description (Optional)
                 </label>
                 <input
@@ -389,19 +389,19 @@ const CourseMaterialsPage = () => {
                   placeholder="e.g., Summary of key CLI flags and container life cycle diagrams"
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
-                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                  className="admin-input"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="admin-label">
                   Module / Section Tag (Optional)
                 </label>
                 {modules.length > 0 ? (
                   <select
                     value={uploadModule}
                     onChange={(e) => setUploadModule(e.target.value)}
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                    className="admin-input cursor-pointer"
                   >
                     <option value="">Not module specific</option>
                     {modules.map((title) => (
@@ -414,16 +414,16 @@ const CourseMaterialsPage = () => {
                     placeholder="e.g., Module 2: Kubernetes Fundamentals"
                     value={uploadModule}
                     onChange={(e) => setUploadModule(e.target.value)}
-                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                    className="admin-input"
                   />
                 )}
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-ink-faint mt-1">
                   Modules are managed in the Curriculum Builder for this course.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="admin-label">
                   File (PDF, DOCX, ZIP up to 25MB) *
                 </label>
                 <input
@@ -431,7 +431,7 @@ const CourseMaterialsPage = () => {
                   required
                   accept=".pdf,.doc,.docx,.txt,.zip"
                   onChange={(e) => setUploadFile(e.target.files[0])}
-                  className="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  className="w-full text-xs text-ink-soft file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-navy file:text-white hover:file:bg-navy-deep cursor-pointer"
                 />
               </div>
 
@@ -439,14 +439,14 @@ const CourseMaterialsPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                  className="px-4 py-2 rounded-md text-[13px] font-semibold text-ink hover:bg-canvas transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition shadow-xs flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-md text-[13px] font-semibold bg-navy text-white hover:bg-navy-deep disabled:opacity-50 transition shadow-sm flex items-center gap-1.5"
                 >
                   {uploading ? (
                     <>

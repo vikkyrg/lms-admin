@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { History, Shield, Clock } from 'lucide-react';
+import { DataTable } from '../components/ui';
 
 const AuditLogsPage = () => {
   const [logs, setLogs] = useState([]);
@@ -23,64 +24,68 @@ const AuditLogsPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 max-w-[1400px] mx-auto">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">System Audit & Compliance Logs</h1>
-        <p className="text-xs text-gray-500 mt-1">Immutable tracking of platform administrative events, course modifications, and payments</p>
+        <h1 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+          <History className="w-5 h-5 text-brand" />
+          System Audit &amp; Compliance Logs
+        </h1>
+        <p className="text-xs text-ink-soft mt-1">Immutable tracking of platform administrative events, course modifications, and payments</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-gray-600">
-            <thead className="bg-gray-50 text-gray-500 font-semibold uppercase">
-              <tr>
-                <th className="p-4">Action</th>
-                <th className="p-4">Performed By</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Target Resource</th>
-                <th className="p-4">Timestamp</th>
-                <th className="p-4">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="p-8 text-center text-gray-400">Loading audit trail...</td>
-                </tr>
-              ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="p-8 text-center text-gray-400">No audit logs recorded yet.</td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log._id} className="hover:bg-gray-50">
-                    <td className="p-4">
-                      <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded text-[11px]">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="p-4 font-semibold text-gray-900">
-                      {log.performedBy?.name || 'System / Unregistered'}
-                    </td>
-                    <td className="p-4 uppercase text-[10px] font-bold text-gray-500">
-                      {log.role}
-                    </td>
-                    <td className="p-4 font-medium text-gray-800">
-                      {log.targetResource} {log.targetId && `(${log.targetId.slice(-6)})`}
-                    </td>
-                    <td className="p-4 text-gray-500">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                    <td className="p-4 max-w-xs font-mono text-[10px] text-gray-500 truncate">
-                      {JSON.stringify(log.details)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        loading={loading}
+        rows={logs}
+        minWidthClass="min-w-[860px]"
+        skeletonRows={8}
+        empty={{
+          icon: Shield,
+          title: 'No audit logs recorded yet',
+          message: 'Administrative events will appear here automatically.'
+        }}
+        columns={[
+          {
+            key: 'action',
+            header: 'Action',
+            render: (log) => (
+              <span className="font-mono font-semibold text-brand bg-brand-soft px-2 py-0.5 rounded text-[11px] whitespace-nowrap">
+                {log.action}
+              </span>
+            )
+          },
+          {
+            key: 'performedBy',
+            header: 'Performed By',
+            render: (log) => <span className="font-semibold text-ink whitespace-nowrap">{log.performedBy?.name || 'System / Unregistered'}</span>
+          },
+          {
+            key: 'role',
+            header: 'Role',
+            render: (log) => <span className="uppercase text-[10px] font-semibold text-ink-soft">{log.role}</span>
+          },
+          {
+            key: 'targetResource',
+            header: 'Target Resource',
+            render: (log) => <span className="font-medium text-ink">{log.targetResource} {log.targetId && `(${log.targetId.slice(-6)})`}</span>
+          },
+          {
+            key: 'createdAt',
+            header: 'Timestamp',
+            render: (log) => (
+              <span className="text-ink-soft whitespace-nowrap inline-flex items-center gap-1.5">
+                <Clock className="w-3 h-3 text-ink-faint" />
+                {new Date(log.createdAt).toLocaleString()}
+              </span>
+            )
+          },
+          {
+            key: 'details',
+            header: 'Details',
+            className: 'max-w-xs',
+            render: (log) => <span className="font-mono text-[10px] text-ink-soft block truncate">{JSON.stringify(log.details)}</span>
+          }
+        ]}
+      />
     </div>
   );
 };

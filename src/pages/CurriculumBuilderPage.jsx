@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Plus, Trash2, Edit, ChevronUp, ChevronDown, X, Download, Upload, Video } from 'lucide-react';
 import { ConfirmDialog, useFeedback } from '../components/Feedback';
+import { btn } from '../components/ui';
 
 const emptyLesson = {
   title: '',
@@ -267,17 +268,17 @@ const CurriculumBuilderPage = () => {
         loading={deleting}
       />
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">Curriculum Builder</h1>
-        <p className="text-xs text-gray-500 mt-1">Add, edit, reorder and delete modules, video lessons, topics and downloadable resources.</p>
+        <h1 className="text-lg font-bold text-ink tracking-tight">Curriculum Builder</h1>
+        <p className="text-xs text-ink-soft mt-1">Add, edit, reorder and delete modules, video lessons, topics and downloadable resources.</p>
       </div>
 
       {/* Select Course */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col sm:flex-row sm:items-center gap-3">
-        <label className="text-xs font-bold text-gray-700 shrink-0">Select Target Course:</label>
+      <div className="bg-surface p-4 rounded-lg border border-line shadow-card flex flex-col sm:flex-row sm:items-center gap-3">
+        <label className="admin-label !mb-0 shrink-0">Select Target Course:</label>
         <select
           value={selectedCourseId}
           onChange={(e) => setSelectedCourseId(e.target.value)}
-          className="w-full sm:flex-1 sm:max-w-md bg-gray-50 border border-gray-300 text-xs rounded-xl p-2 font-semibold text-gray-800"
+          className="admin-input w-full sm:flex-1 sm:max-w-md cursor-pointer"
         >
           {courses.map((c) => (
             <option key={c._id} value={c._id}>{c.title}</option>
@@ -286,18 +287,18 @@ const CurriculumBuilderPage = () => {
       </div>
 
       {/* Add Module Form */}
-      <form onSubmit={handleAddModule} className="bg-white p-4 rounded-2xl border border-gray-200 space-y-3">
+      <form onSubmit={handleAddModule} className="bg-surface p-4 rounded-lg border border-line shadow-card space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             placeholder="New Module Title (e.g. Module 3: Continuous Integration)"
             value={moduleTitle}
             onChange={(e) => setModuleTitle(e.target.value)}
-            className="flex-1 p-3 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="admin-input flex-1"
           />
           <button
             type="submit"
-            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
+            className={btn('primary', 'md', 'w-full sm:w-auto justify-center')}
           >
             <Plus className="h-4 w-4" /> Add Module
           </button>
@@ -307,65 +308,73 @@ const CurriculumBuilderPage = () => {
           placeholder="Module description (optional) — shown under the module heading on the course page"
           value={moduleDescription}
           onChange={(e) => setModuleDescription(e.target.value)}
-          className="w-full p-3 bg-white border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="admin-input w-full"
         />
       </form>
 
       {/* Modules List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-10 text-gray-400">Loading curriculum...</div>
+          <div className="space-y-3" aria-hidden="true">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-surface rounded-lg border border-line shadow-card p-5 space-y-3">
+                <span className="block admin-skeleton h-4 w-1/3" />
+                <span className="block admin-skeleton h-3 w-2/3" />
+                <span className="block admin-skeleton h-9 w-full" />
+              </div>
+            ))}
+          </div>
         ) : modules.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl border text-center text-gray-500 text-xs">
+          <div className="bg-surface p-10 rounded-lg border border-line shadow-card text-center text-xs text-ink-soft">
             No modules added to this course yet. Use the field above to add the first module.
           </div>
         ) : (
           modules.map((m, mIdx) => (
-            <div key={m._id} className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 space-y-4 shadow-xs">
+            <div key={m._id} className="bg-surface rounded-lg border border-line shadow-card p-4 sm:p-5 space-y-4">
               {/* Module header: view or inline edit */}
               {editingModule?._id === m._id ? (
-                <form onSubmit={saveEditModule} className="space-y-3 border-b pb-3">
+                <form onSubmit={saveEditModule} className="space-y-3 border-b border-line-soft pb-3">
                   <input
                     type="text"
                     value={editingModule.title}
                     onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })}
-                    className="w-full p-2 border rounded-xl text-xs font-semibold"
+                    className="admin-input w-full font-semibold"
                   />
                   <textarea
                     rows={2}
                     value={editingModule.description}
                     onChange={(e) => setEditingModule({ ...editingModule, description: e.target.value })}
                     placeholder="Module description"
-                    className="w-full p-2 border rounded-xl text-xs"
+                    className="admin-input w-full"
                   />
                   <div className="flex gap-2">
-                    <button type="submit" className="text-xs bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg">Save</button>
-                    <button type="button" onClick={() => setEditingModule(null)} className="text-xs border px-3 py-1.5 rounded-lg text-gray-600">Cancel</button>
+                    <button type="submit" className={btn('primary', 'sm')}>Save</button>
+                    <button type="button" onClick={() => setEditingModule(null)} className={btn('secondary', 'sm')}>Cancel</button>
                   </div>
                 </form>
               ) : (
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border-b pb-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border-b border-line-soft pb-3">
                   <div className="min-w-0">
-                    <h3 className="font-bold text-sm text-gray-900">{m.title}</h3>
-                    {m.description && <p className="text-xs text-gray-500 mt-1">{m.description}</p>}
+                    <h3 className="font-semibold text-sm text-ink">{m.title}</h3>
+                    {m.description && <p className="text-xs text-ink-soft mt-1">{m.description}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => openAddLesson(m._id)}
-                      className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
+                      className="text-xs bg-brand-soft text-brand hover:bg-line-soft font-semibold px-3 py-1.5 rounded-md flex items-center gap-1 transition"
                     >
                       <Plus className="h-3.5 w-3.5" /> Add Lesson
                     </button>
-                    <button onClick={() => startEditModule(m)} title="Edit module" className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg">
+                    <button onClick={() => startEditModule(m)} title="Edit module" className="p-1.5 text-ink-faint hover:text-brand hover:bg-brand-soft rounded-md transition">
                       <Edit className="h-4 w-4" />
                     </button>
-                    <button onClick={() => reorderModule(mIdx, -1)} disabled={mIdx === 0} title="Move up" className="p-1.5 text-gray-400 hover:text-gray-800 rounded-lg disabled:opacity-30">
+                    <button onClick={() => reorderModule(mIdx, -1)} disabled={mIdx === 0} title="Move up" className="p-1.5 text-ink-faint hover:text-ink rounded-md disabled:opacity-30 transition">
                       <ChevronUp className="h-4 w-4" />
                     </button>
-                    <button onClick={() => reorderModule(mIdx, 1)} disabled={mIdx === modules.length - 1} title="Move down" className="p-1.5 text-gray-400 hover:text-gray-800 rounded-lg disabled:opacity-30">
+                    <button onClick={() => reorderModule(mIdx, 1)} disabled={mIdx === modules.length - 1} title="Move down" className="p-1.5 text-ink-faint hover:text-ink rounded-md disabled:opacity-30 transition">
                       <ChevronDown className="h-4 w-4" />
                     </button>
-                    <button onClick={() => handleDeleteModule(m._id)} title="Delete module" className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg">
+                    <button onClick={() => handleDeleteModule(m._id)} title="Delete module" className="p-1.5 text-ink-faint hover:text-danger hover:bg-danger-soft rounded-md transition">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -375,36 +384,36 @@ const CurriculumBuilderPage = () => {
               {/* Lessons within module */}
               <div className="space-y-2">
                 {(m.lessons || []).length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">No lessons in this module.</p>
+                  <p className="text-xs text-ink-faint italic">No lessons in this module.</p>
                 ) : (
                   m.lessons.map((lesson, lIdx) => (
-                    <div key={lesson._id} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-xl text-xs">
+                    <div key={lesson._id} className="flex items-center justify-between gap-3 p-3 bg-canvas rounded-md border border-line-soft text-xs">
                       <div className="min-w-0">
-                        <span className="font-semibold text-gray-800">{lesson.title}</span>
+                        <span className="font-semibold text-ink">{lesson.title}</span>
                         {lesson.isPreview && (
-                          <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">Preview Free</span>
+                          <span className="ml-2 text-[10px] bg-success-soft text-[#15803d] px-1.5 py-0.5 rounded font-bold">Preview Free</span>
                         )}
                         {lesson.resources?.length > 0 && (
-                          <span className="ml-2 text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1">
+                          <span className="ml-2 text-[10px] bg-brand-soft text-brand px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1">
                             <Download className="h-3 w-3" /> {lesson.resources.length}
                           </span>
                         )}
                         {lesson.videoUrl && (
-                          <p className="text-[10px] text-emerald-600 truncate mt-0.5">Video: {lesson.video?.originalName || 'Uploaded video'}</p>
+                          <p className="text-[10px] text-success truncate mt-0.5">Video: {lesson.video?.originalName || 'Uploaded video'}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-gray-400 mr-1">{lesson.duration}m</span>
-                        <button onClick={() => reorderLesson(m._id, lIdx, -1)} disabled={lIdx === 0} title="Move up" className="p-1 text-gray-400 hover:text-gray-800 rounded disabled:opacity-30">
+                        <span className="text-ink-faint mr-1">{lesson.duration}m</span>
+                        <button onClick={() => reorderLesson(m._id, lIdx, -1)} disabled={lIdx === 0} title="Move up" className="p-1 text-ink-faint hover:text-ink rounded disabled:opacity-30 transition">
                           <ChevronUp className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={() => reorderLesson(m._id, lIdx, 1)} disabled={lIdx === m.lessons.length - 1} title="Move down" className="p-1 text-gray-400 hover:text-gray-800 rounded disabled:opacity-30">
+                        <button onClick={() => reorderLesson(m._id, lIdx, 1)} disabled={lIdx === m.lessons.length - 1} title="Move down" className="p-1 text-ink-faint hover:text-ink rounded disabled:opacity-30 transition">
                           <ChevronDown className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={() => openEditLesson(m._id, lesson)} title="Edit lesson" className="p-1 text-gray-400 hover:text-indigo-600 rounded">
+                        <button onClick={() => openEditLesson(m._id, lesson)} title="Edit lesson" className="p-1 text-ink-faint hover:text-brand rounded transition">
                           <Edit className="h-3.5 w-3.5" />
                         </button>
-                        <button onClick={() => handleDeleteLesson(lesson._id)} title="Delete lesson" className="p-1 text-gray-400 hover:text-red-600 rounded">
+                        <button onClick={() => handleDeleteLesson(lesson._id)} title="Delete lesson" className="p-1 text-ink-faint hover:text-danger rounded transition">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -419,34 +428,34 @@ const CurriculumBuilderPage = () => {
 
       {/* Lesson Modal (create / edit) */}
       {lessonModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-surface rounded-t-xl sm:rounded-lg max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-overlay admin-modal-in">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-base text-gray-900">{lessonModal.editId ? 'Edit Lesson' : 'Add New Lesson'}</h3>
-              <button onClick={closeLessonModal} className="p-1 text-gray-400 hover:text-gray-700"><X className="h-5 w-5" /></button>
+              <h3 className="font-bold text-base text-ink">{lessonModal.editId ? 'Edit Lesson' : 'Add New Lesson'}</h3>
+              <button onClick={closeLessonModal} className="p-1 text-ink-faint hover:text-ink-soft transition"><X className="h-5 w-5" /></button>
             </div>
             <form onSubmit={handleSubmitLesson} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Lesson Title</label>
+                <label className="admin-label">Lesson Title</label>
                 <input
                   type="text"
                   required
                   value={lessonData.title}
                   onChange={(e) => setLessonData({ ...lessonData, title: e.target.value })}
                   placeholder="1. Introduction to Route Controllers"
-                  className="w-full p-2 border rounded-xl"
+                  className="admin-input w-full"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Topic Video</label>
-                <div className="rounded-xl border border-dashed border-slate-300 p-3 space-y-2">
+                <label className="admin-label">Topic Video</label>
+                <div className="rounded-lg border border-dashed border-line p-3 space-y-2">
                   {lessonData.videoUrl ? (
-                    <div className="flex items-center gap-2 text-[11px] text-emerald-700">
+                    <div className="flex items-center gap-2 text-[11px] text-[#15803d]">
                       <Video className="h-4 w-4" /> Existing video attached
-                      <button type="button" onClick={removeLessonVideo} className="ml-auto text-red-600 font-semibold">Remove</button>
+                      <button type="button" onClick={removeLessonVideo} className="ml-auto text-danger font-semibold">Remove</button>
                     </div>
-                  ) : <p className="text-[11px] text-slate-500">No video uploaded for this lesson.</p>}
+                  ) : <p className="text-[11px] text-ink-soft">No video uploaded for this lesson.</p>}
                   {videoPreviewUrl && (
                     <video
                       key={videoPreviewUrl}
@@ -456,39 +465,39 @@ const CurriculumBuilderPage = () => {
                       src={videoPreviewUrl}
                     />
                   )}
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#173563] px-3 py-2 text-white font-semibold">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-navy hover:bg-navy-deep px-3 py-2 text-white font-semibold transition">
                     <Upload className="h-4 w-4" /> {lessonData.videoUrl ? 'Replace video' : 'Upload video'}
                     <input type="file" accept="video/mp4,video/webm" className="hidden" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} />
                   </label>
-                  {videoFile && <p className="text-[11px] text-slate-600">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB</p>}
-                  {videoUploadProgress > 0 && videoUploadProgress < 100 && <p className="text-[11px] text-[#3F6FA8]">Uploading: {videoUploadProgress}%</p>}
-                  <p className="text-[10px] text-gray-400">MP4 or WebM, maximum 500 MB. The video is saved to this topic only.</p>
+                  {videoFile && <p className="text-[11px] text-ink-soft">{videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB</p>}
+                  {videoUploadProgress > 0 && videoUploadProgress < 100 && <p className="text-[11px] text-brand">Uploading: {videoUploadProgress}%</p>}
+                  <p className="text-[10px] text-ink-faint">MP4 or WebM, maximum 500 MB. The video is saved to this topic only.</p>
                 </div>
                 <input
                   type="text"
                   value={lessonData.videoUrl}
                   onChange={(e) => setLessonData({ ...lessonData, videoUrl: e.target.value })}
                   placeholder="Optional external video URL"
-                  className="w-full p-2 border rounded-xl"
+                  className="admin-input w-full"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Duration (Mins)</label>
+                  <label className="admin-label">Duration (Mins)</label>
                   <input
                     type="number"
                     value={lessonData.duration}
                     onChange={(e) => setLessonData({ ...lessonData, duration: Number(e.target.value) })}
-                    className="w-full p-2 border rounded-xl"
+                    className="admin-input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Allow Public Preview?</label>
+                  <label className="admin-label">Allow Public Preview?</label>
                   <select
                     value={lessonData.isPreview ? 'true' : 'false'}
                     onChange={(e) => setLessonData({ ...lessonData, isPreview: e.target.value === 'true' })}
-                    className="w-full p-2 border rounded-xl"
+                    className="admin-input w-full"
                   >
                     <option value="false">No (Enrolled Only)</option>
                     <option value="true">Yes (Public Preview)</option>
@@ -497,38 +506,38 @@ const CurriculumBuilderPage = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Lesson Description &amp; Notes</label>
+                <label className="admin-label">Lesson Description &amp; Notes</label>
                 <textarea
                   rows={3}
                   value={lessonData.description}
                   onChange={(e) => setLessonData({ ...lessonData, description: e.target.value })}
-                  className="w-full p-2 border rounded-xl"
+                  className="admin-input w-full"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Downloadable Resources (JSON array)</label>
+                <label className="admin-label">Downloadable Resources (JSON array)</label>
                 <textarea
                   rows={3}
                   value={lessonData.resourcesText}
                   onChange={(e) => setLessonData({ ...lessonData, resourcesText: e.target.value })}
                   placeholder='[{"title":"Lab Sheet","fileUrl":"https://.../lab.pdf","fileType":"pdf"}]'
-                  className="w-full p-2 border rounded-xl font-mono text-[11px]"
+                  className="admin-input w-full font-mono text-[11px]"
                 />
-                <p className="text-[10px] text-gray-400 mt-1">Each item: title, fileUrl, fileType. Leave [] for none.</p>
+                <p className="text-[10px] text-ink-faint mt-1">Each item: title, fileUrl, fileType. Leave [] for none.</p>
               </div>
 
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-line">
                 <button
                   type="button"
                   onClick={closeLessonModal}
-                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 border rounded-xl"
+                  className={btn('secondary', 'md', 'w-full sm:w-auto')}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-indigo-600 text-white font-bold rounded-xl"
+                  className={btn('primary', 'md', 'w-full sm:w-auto')}
                 >
                   {lessonModal.editId ? 'Update Lesson' : 'Save Lesson'}
                 </button>

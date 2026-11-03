@@ -13,16 +13,14 @@ import CourseMaterialsPage from './pages/CourseMaterialsPage';
 import ProjectsManagementPage from './pages/ProjectsManagementPage';
 import CourseManagementPage from './pages/CourseManagementPage';
 import CurriculumBuilderPage from './pages/CurriculumBuilderPage';
-import QuizManagementPage from './pages/QuizManagementPage';
-import AssignmentManagementPage from './pages/AssignmentManagementPage';
 import UsersManagementPage from './pages/UsersManagementPage';
-import SubmissionsGradingPage from './pages/SubmissionsGradingPage';
 import EnquiriesPage from './pages/EnquiriesPage';
 import TestimonialsManagementPage from './pages/TestimonialsManagementPage';
 import VideoTestimonialsManagementPage from './pages/VideoTestimonialsManagementPage';
 import FaqManagementPage from './pages/FaqManagementPage';
 import AdminPaymentsPage from './pages/AdminPaymentsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import RoadmapManagementPage from './pages/RoadmapManagementPage';
 
 function App() {
   return (
@@ -40,15 +38,13 @@ function App() {
             <Route path="projects" element={<ProjectsManagementPage />} />
             <Route path="courses" element={<CourseManagementPage />} />
             <Route path="curriculum" element={<CurriculumBuilderPage />} />
-            <Route path="quizzes" element={<QuizManagementPage />} />
-            <Route path="assignments" element={<AssignmentManagementPage />} />
+            <Route path="roadmap" element={<Navigate to="/projects" replace />} />
             <Route path="users" element={<UsersManagementPage />} />
             <Route path="payments" element={<AdminPaymentsPage />} />
             <Route path="audit-logs" element={<AuditLogsPage />} />
             <Route path="testimonials" element={<TestimonialsManagementPage />} />
             <Route path="video-testimonials" element={<VideoTestimonialsManagementPage />} />
             <Route path="faqs" element={<FaqManagementPage />} />
-            <Route path="submissions" element={<SubmissionsGradingPage />} />
             <Route path="enquiries" element={<EnquiriesPage />} />
           </Route>
 

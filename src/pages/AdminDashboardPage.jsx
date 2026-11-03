@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAdminNotifications } from '../context/AdminNotificationsContext';
 import {
   Users,
   BookOpen,
-  DollarSign,
-  TrendingUp,
-  Award,
+  IndianRupee,
   CheckCircle,
-  Clock,
-  ArrowUpRight,
-  UserCheck
+  UserCheck,
+  MessageSquare,
+  ArrowRight
 } from 'lucide-react';
 import {
   BarChart,
@@ -20,175 +20,248 @@ import {
   ResponsiveContainer,
   CartesianGrid
 } from 'recharts';
+import {
+  MetricCard,
+  SectionCard,
+  StatusBadge,
+  Skeleton,
+  SkeletonTable,
+  SkeletonCards,
+  EmptyState
+} from '../components/ui';
+
+const formatMoney = (value) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value || 0);
 
 const AdminDashboardPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  const [error, setError] = useState(null);
+  const { counts } = useAdminNotifications();
 
   const fetchStats = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await api.get('/admin/stats');
       setData(res.data);
     } catch (err) {
-      console.error(err);
+      setError(err.response?.data?.message || 'Failed to load dashboard stats.');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const stats = data?.stats || {};
+  const recentStudents = data?.recentStudents || [];
+  const recentPayments = data?.recentPayments || [];
+  const topCourses = data?.topCourses || [];
+
+  const chartData = topCourses.map((c) => ({
+    name: c.title.length > 16 ? `${c.title.substring(0, 16)}…` : c.title,
+    students: c.enrollmentCount || 0
+  }));
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
-        <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
+      <div className="space-y-5 max-w-[1400px] mx-auto">
+        <div>
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="mt-2 h-3.5 w-80" />
+        </div>
+        <SkeletonCards count={6} className="grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 rounded-lg border border-line bg-surface p-4">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="mt-4 h-56 w-full" />
+          </div>
+          <div className="rounded-lg border border-line bg-surface p-4">
+            <Skeleton className="h-4 w-40" />
+            <SkeletonTable rows={5} cols={2} />
+          </div>
+        </div>
       </div>
     );
   }
 
-  const stats = data?.stats || {};
-  const recentStudents = data?.recentStudents || [];
-  const topCourses = data?.topCourses || [];
-
-  // Chart data from top courses
-  const chartData = topCourses.map((c) => ({
-    name: c.title.substring(0, 15) + '...',
-    students: c.enrollmentCount || 0
-  }));
+  if (error) {
+    return (
+      <SectionCard className="max-w-xl mx-auto mt-10">
+        <EmptyState
+          title="Could not load dashboard"
+          message={error}
+          action={
+            <button onClick={fetchStats} className="rounded-md border border-line bg-surface px-3.5 py-2 text-xs font-semibold text-ink hover:bg-canvas transition">
+              Try again
+            </button>
+          }
+        />
+      </SectionCard>
+    );
+  }
 
   return (
-    <div className="space-y-5 sm:space-y-8 max-w-7xl mx-auto">
-      {/* Title */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">Platform Analytics Overview</h1>
-        <p className="text-xs text-gray-500 mt-1">Real-time database aggregated platform metrics</p>
+    <div className="space-y-5 max-w-[1400px] mx-auto">
+      {/* Page intro */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-ink tracking-tight">Platform Overview</h1>
+          <p className="text-xs text-ink-soft mt-0.5">Live metrics aggregated from the production database</p>
+        </div>
+        {stats.completionRate != null ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-canvas border border-line px-3 py-1 text-xs text-ink-soft">
+            Course completion rate
+            <span className="font-bold text-navy">{stats.completionRate}%</span>
+          </span>
+        ) : null}
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Pending Approvals</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 truncate">{stats.pendingApprovals || 0}</p>
-          </div>
-          <div className="p-2.5 sm:p-3 bg-amber-50 text-amber-600 rounded-xl shrink-0">
-            <UserCheck className="h-5 w-5 sm:h-6 sm:w-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Students</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 truncate">{stats.totalStudents || 0}</p>
-          </div>
-          <div className="p-2.5 sm:p-3 bg-blue-50 text-blue-600 rounded-xl shrink-0">
-            <Users className="h-5 w-5 sm:h-6 sm:w-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Published Courses</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 truncate">{stats.publishedCourses || 0}</p>
-          </div>
-          <div className="p-2.5 sm:p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
-            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Enrollments</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 truncate">{stats.totalEnrollments || 0}</p>
-          </div>
-          <div className="p-2.5 sm:p-3 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
-            <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Gross Platform Revenue</p>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 truncate">₹{stats.grossRevenue || 0}</p>
-          </div>
-          <div className="p-2.5 sm:p-3 bg-amber-50 text-amber-600 rounded-xl shrink-0">
-            <DollarSign className="h-5 w-5 sm:h-6 sm:w-6" />
-          </div>
-        </div>
+      {/* Metrics — every value comes from /admin/stats or the notifications API */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+        <MetricCard label="Total Students" value={stats.totalStudents ?? 0} icon={Users} tone="brand" />
+        <MetricCard label="Pending Approvals" value={stats.pendingApprovals ?? 0} icon={UserCheck} tone="warning" />
+        <MetricCard label="Active Enrollments" value={stats.approvedEnrollments ?? 0} icon={CheckCircle} tone="success" sub={`${stats.totalEnrollments ?? 0} total`} />
+        <MetricCard label="Total Courses" value={stats.totalCourses ?? 0} icon={BookOpen} tone="navy" sub={`${stats.publishedCourses ?? 0} published`} />
+        <MetricCard label="Gross Revenue" value={formatMoney(stats.grossRevenue)} icon={IndianRupee} tone="success" />
+        <MetricCard label="Unread Enquiries" value={counts.enquiries ?? 0} icon={MessageSquare} tone="brand" />
       </div>
 
-      {/* Chart & Top Courses Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
-        {/* Analytics Chart */}
-        <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4 min-w-0">
-          <h3 className="font-bold text-gray-900 text-sm">Course Enrollment Distribution</h3>
-          <div className="h-56 sm:h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="students" fill="#4f46e5" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+      {/* Chart + Best performers */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <SectionCard title="Course Enrollment Distribution" description="Top published courses by enrolled students" className="lg:col-span-2 min-w-0">
+          <div className="px-4 pb-4 pt-2 h-64 w-full">
+            {chartData.length === 0 ? (
+              <EmptyState title="No published courses yet" message="Enrollment data appears here once courses are published." />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf2f7" />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip cursor={{ fill: '#f7f9fc' }} contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }} />
+                  <Bar dataKey="students" fill="#2f6fed" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
-        </div>
+        </SectionCard>
 
-        {/* Top Courses list */}
-        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4 min-w-0">
-          <h3 className="font-bold text-gray-900 text-sm">Best Performing Courses</h3>
-          <div className="divide-y divide-gray-100">
-            {topCourses.map((c) => (
-              <div key={c._id} className="py-3 flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-900 line-clamp-1">{c.title}</h4>
-                  <p className="text-[11px] text-gray-500 mt-0.5">{c.enrollmentCount || 0} Students enrolled</p>
+        <SectionCard
+          title="Best Performing Courses"
+          actions={<Link to="/courses" className="text-xs font-semibold text-brand hover:underline">View all</Link>}
+        >
+          {topCourses.length === 0 ? (
+            <EmptyState title="No published courses" message="Publish a course to see performance here." className="py-8" />
+          ) : (
+            <div className="divide-y divide-line-soft px-4">
+              {topCourses.map((c) => (
+                <div key={c._id} className="py-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="text-[13px] font-semibold text-ink truncate">{c.title}</h4>
+                    <p className="text-[11px] text-ink-soft mt-0.5">{c.enrollmentCount || 0} enrolled</p>
+                  </div>
+                  <span className="text-xs font-bold text-navy shrink-0">{c.price > 0 ? formatMoney(c.price) : 'Free'}</span>
                 </div>
-                <span className="text-xs font-bold text-indigo-600">
-                  {c.price > 0 ? `₹${c.price}` : 'Free'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
       </div>
 
-      {/* Recent Registered Students */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-4 sm:p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 text-sm">Recent Student Registrations</h3>
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <table className="w-full min-w-[560px] text-left text-xs text-gray-600">
-            <thead className="bg-gray-50 text-gray-500 font-semibold uppercase">
-              <tr>
-                <th className="p-3">Student Name</th>
-                <th className="p-3">Email Address</th>
-                <th className="p-3">Registered Date</th>
-                <th className="p-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {recentStudents.map((s) => (
-                <tr key={s._id} className="hover:bg-gray-50">
-                  <td className="p-3 font-semibold text-gray-900">{s.name}</td>
-                  <td className="p-3">{s.email}</td>
-                  <td className="p-3">{new Date(s.createdAt).toLocaleDateString()}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[10px]">
-                      Active
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Recent activity tables */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <SectionCard
+          title="Recent Student Registrations"
+          actions={<Link to="/users" className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline">Directory <ArrowRight className="h-3 w-3" /></Link>}
+        >
+          {recentStudents.length === 0 ? (
+            <EmptyState title="No registrations yet" className="py-8" />
+          ) : (
+            <div className="overflow-x-auto border-t border-line">
+              <table className="w-full min-w-[480px] text-left">
+                <thead>
+                  <tr className="border-b border-line bg-canvas/70">
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Student</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Email</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Registered</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line-soft">
+                  {recentStudents.map((s) => (
+                    <tr key={s._id} className="hover:bg-canvas/60 transition-colors">
+                      <td className="px-4 py-2.5 text-[13px] font-semibold text-ink">{s.name}</td>
+                      <td className="px-4 py-2.5 text-[13px] text-ink-soft">{s.email}</td>
+                      <td className="px-4 py-2.5 text-[13px] text-ink-soft whitespace-nowrap">{new Date(s.createdAt).toLocaleDateString('en-IN')}</td>
+                      <td className="px-4 py-2.5">
+                        <StatusBadge value={s.isActive === false ? 'inactive' : 'active'} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="Recent Payment Activity"
+          actions={<Link to="/payments" className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline">All payments <ArrowRight className="h-3 w-3" /></Link>}
+        >
+          {recentPayments.length === 0 ? (
+            <EmptyState title="No completed payments yet" className="py-8" />
+          ) : (
+            <div className="overflow-x-auto border-t border-line">
+              <table className="w-full min-w-[480px] text-left">
+                <thead>
+                  <tr className="border-b border-line bg-canvas/70">
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Student</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Course</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Amount</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Date</th>
+                    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line-soft">
+                  {recentPayments.map((p) => (
+                    <tr key={p._id} className="hover:bg-canvas/60 transition-colors">
+                      <td className="px-4 py-2.5 text-[13px] font-semibold text-ink truncate max-w-[160px]">{p.student?.name || '—'}</td>
+                      <td className="px-4 py-2.5 text-[13px] text-ink-soft truncate max-w-[180px]">{p.course?.title || '—'}</td>
+                      <td className="px-4 py-2.5 text-[13px] font-semibold text-ink whitespace-nowrap tabular-nums">{formatMoney(p.amount)}</td>
+                      <td className="px-4 py-2.5 text-[13px] text-ink-soft whitespace-nowrap">{new Date(p.createdAt).toLocaleDateString('en-IN')}</td>
+                      <td className="px-4 py-2.5"><StatusBadge value={p.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
       </div>
+
+      {/* Pending approvals shortcut */}
+      {stats.pendingApprovals > 0 ? (
+        <Link
+          to="/enrollments"
+          className="flex items-center justify-between gap-3 rounded-lg border border-warning/25 bg-warning-soft px-4 py-3 hover:bg-[#fdf1dc] transition group"
+        >
+          <span className="flex items-center gap-2.5 min-w-0">
+            <UserCheck className="h-4 w-4 text-warning shrink-0" />
+            <span className="text-[13px] font-semibold text-[#92400e] truncate">
+              {stats.pendingApprovals} enrollment{stats.pendingApprovals === 1 ? '' : 's'} waiting for approval
+            </span>
+          </span>
+          <span className="text-xs font-bold text-[#92400e] shrink-0 inline-flex items-center gap-1 group-hover:gap-1.5 transition-all">
+            Review now <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        </Link>
+      ) : null}
     </div>
   );
 };
 
 export default AdminDashboardPage;
-

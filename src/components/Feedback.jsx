@@ -35,7 +35,7 @@ export const FeedbackProvider = ({ children }) => {
     <FeedbackContext.Provider value={{ notify, confirm }}>
       {children}
       {notice && (
-        <div role="status" className={`fixed right-4 top-4 z-[70] max-w-sm rounded-xl px-4 py-3 text-sm font-semibold shadow-lg ${notice.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
+        <div role="status" className={`fixed right-4 top-4 z-[70] max-w-sm rounded-lg px-4 py-3 text-sm font-semibold shadow-pop ring-1 ring-inset ${notice.type === 'success' ? 'bg-success-soft text-[#15803d] ring-[#16a34a]/25' : 'bg-danger-soft text-[#b91c1c] ring-[#dc2626]/25'}`}>
           {notice.message}
         </div>
       )}
@@ -55,13 +55,13 @@ export const useFeedback = () => useContext(FeedbackContext);
 export const ConfirmDialog = ({ open, title, description, onCancel, onConfirm, loading = false }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-        <h2 id="confirm-title" className="text-lg font-bold text-gray-900">{title}</h2>
-        <p className="mt-2 text-sm text-gray-600">{description}</p>
-        <div className="mt-6 flex justify-end gap-3">
-          <button type="button" onClick={onCancel} disabled={loading} className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700">Cancel</button>
-          <button type="button" onClick={onConfirm} disabled={loading} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{loading ? 'Working...' : 'Confirm'}</button>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-navy-deep/50 p-4 admin-overlay-in" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div className="w-full max-w-sm rounded-lg bg-surface p-5 shadow-overlay admin-modal-in">
+        <h2 id="confirm-title" className="text-sm font-bold text-ink">{title}</h2>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">{description}</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onCancel} disabled={loading} className="inline-flex items-center justify-center rounded-md border border-line bg-surface px-3.5 py-2 text-[13px] font-semibold text-ink hover:bg-canvas disabled:opacity-50 transition">Cancel</button>
+          <button type="button" onClick={onConfirm} disabled={loading} className="inline-flex items-center justify-center rounded-md bg-danger px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-[#b91c1c] disabled:opacity-50 shadow-sm transition">{loading ? 'Working…' : 'Confirm'}</button>
         </div>
       </div>
     </div>

@@ -11,7 +11,13 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('admin_token');
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
+      if (config.headers?.delete) {
+        config.headers.delete('Content-Type');
+        config.headers.delete('content-type');
+      } else if (config.headers) {
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+      }
     }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

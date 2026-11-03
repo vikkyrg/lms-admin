@@ -24,6 +24,7 @@ import {
   Award
 } from 'lucide-react';
 import { useFeedback } from '../components/Feedback';
+import { btn } from '../components/ui';
 
 const CATEGORY_OPTIONS = [
   'DevOps',
@@ -325,22 +326,22 @@ const ProjectsManagementPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-[1400px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-2xs">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface p-5 rounded-lg border border-line shadow-card">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2.5">
-            <FolderGit2 className="w-6 h-6 text-indigo-600" />
+          <h1 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+            <FolderGit2 className="w-5 h-5 text-brand" />
             Project Management
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          <p className="text-xs text-ink-soft mt-1">
             Manage student projects, technologies, learning outcomes, and project showcases.
           </p>
         </div>
         <button
           type="button"
           onClick={handleOpenCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-sm transition"
+          className={btn('primary')}
         >
           <Plus className="w-4 h-4" />
           <span>Add Project</span>
@@ -349,49 +350,49 @@ const ProjectsManagementPage = () => {
 
       {/* Dashboard Statistics Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+        <div className="bg-surface p-4 rounded-lg border border-line shadow-card">
+          <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider block">
             Total Projects
           </span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-gray-900">{stats.total}</span>
-            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+          <div className="mt-1.5 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-ink">{stats.total}</span>
+            <span className="text-[11px] font-semibold text-brand bg-brand-soft px-2 py-0.5 rounded-full">
               In Database
             </span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+        <div className="bg-surface p-4 rounded-lg border border-line shadow-card">
+          <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider block">
             Published Projects
           </span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600">{stats.published}</span>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+          <div className="mt-1.5 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-success">{stats.published}</span>
+            <span className="text-[11px] font-semibold text-[#15803d] bg-success-soft px-2 py-0.5 rounded-full">
               Live on Site
             </span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+        <div className="bg-surface p-4 rounded-lg border border-line shadow-card">
+          <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider block">
             Draft Projects
           </span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-600">{stats.draft}</span>
-            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+          <div className="mt-1.5 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-warning">{stats.draft}</span>
+            <span className="text-[11px] font-semibold text-[#92400e] bg-warning-soft px-2 py-0.5 rounded-full">
               Unpublished
             </span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+        <div className="bg-surface p-4 rounded-lg border border-line shadow-card">
+          <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider block">
             Project Categories
           </span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-extrabold text-indigo-600">{stats.categoriesCount}</span>
-            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+          <div className="mt-1.5 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-navy">{stats.categoriesCount}</span>
+            <span className="text-[11px] font-semibold text-ink-soft bg-canvas border border-line px-2 py-0.5 rounded-full">
               Categories
             </span>
           </div>
@@ -399,27 +400,27 @@ const ProjectsManagementPage = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between gap-4">
+      <div className="bg-surface p-4 rounded-lg border border-line shadow-card space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between gap-4">
         {/* Search */}
         <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search projects by title, tech, or description..."
-            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="admin-input pl-9"
           />
         </form>
 
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Category Filter */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <Filter className="w-3.5 h-3.5 text-gray-400" />
+          <div className="flex items-center gap-1.5 text-xs text-ink-soft">
+            <Filter className="w-3.5 h-3.5 text-ink-faint" />
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="admin-input w-auto h-9 text-xs cursor-pointer"
             >
               <option value="all">All Categories</option>
               {CATEGORY_OPTIONS.map((cat) => (
@@ -434,7 +435,7 @@ const ProjectsManagementPage = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="admin-input w-auto h-9 text-xs cursor-pointer"
           >
             <option value="all">All Status</option>
             <option value="published">Published</option>
@@ -442,12 +443,12 @@ const ProjectsManagementPage = () => {
           </select>
 
           {/* Sort */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+          <div className="flex items-center gap-1.5 text-xs text-ink-soft">
+            <ArrowUpDown className="w-3.5 h-3.5 text-ink-faint" />
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="admin-input w-auto h-9 text-xs cursor-pointer"
             >
               <option value="order-asc">Display Order (Low to High)</option>
               <option value="order-desc">Display Order (High to Low)</option>
@@ -459,11 +460,11 @@ const ProjectsManagementPage = () => {
       </div>
 
       {/* Projects Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-2xs overflow-hidden">
+      <div className="bg-surface rounded-lg border border-line shadow-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+          <table className="w-full min-w-[860px] text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/75 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
+              <tr className="border-b border-line bg-canvas text-ink-soft font-semibold uppercase tracking-wide text-[11px]">
                 <th className="p-4 pl-6">Project Image & Title</th>
                 <th className="p-4">Category</th>
                 <th className="p-4">Technologies</th>
@@ -473,20 +474,20 @@ const ProjectsManagementPage = () => {
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-gray-700">
+            <tbody className="divide-y divide-line-soft text-ink">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-gray-400">
-                    <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-3" />
-                    <p className="text-sm">Loading projects...</p>
+                  <td colSpan={7} className="p-10 text-center text-ink-faint">
+                    <div className="animate-spin h-7 w-7 border-2 border-brand border-t-transparent rounded-full mx-auto mb-3" />
+                    <p className="text-xs">Loading projects...</p>
                   </td>
                 </tr>
               ) : projects.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-gray-500 space-y-3">
-                    <FolderGit2 className="w-12 h-12 text-gray-300 mx-auto" />
-                    <h3 className="font-bold text-gray-700">No Projects Found</h3>
-                    <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                  <td colSpan={7} className="p-10 text-center text-ink-soft space-y-3">
+                    <FolderGit2 className="w-10 h-10 text-ink-faint mx-auto" />
+                    <h3 className="font-semibold text-ink text-sm">No Projects Found</h3>
+                    <p className="text-xs text-ink-faint max-w-sm mx-auto">
                       {search || categoryFilter !== 'all' || statusFilter !== 'all'
                         ? 'Try adjusting your search or filters.'
                         : 'Click "Add Project" above to create your first portfolio project.'}
@@ -495,7 +496,7 @@ const ProjectsManagementPage = () => {
                 </tr>
               ) : (
                 projects.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50/60 transition">
+                  <tr key={item._id} className="hover:bg-canvas/60 transition">
                     {/* Project Image & Title */}
                     <td className="p-4 pl-6">
                       <div className="flex items-center gap-3">
@@ -503,16 +504,16 @@ const ProjectsManagementPage = () => {
                           <img
                             src={item.image}
                             alt={item.imageAlt || item.title}
-                            className="w-14 h-10 rounded-lg object-cover border border-gray-200 shrink-0"
+                            className="w-14 h-10 rounded-lg object-cover border border-line shrink-0"
                           />
                         ) : (
-                          <div className="w-14 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs shrink-0">
+                          <div className="w-14 h-10 rounded-lg bg-brand-soft border border-brand/15 flex items-center justify-center text-brand font-bold text-xs shrink-0">
                             <FolderGit2 className="w-5 h-5" />
                           </div>
                         )}
                         <div className="min-w-0">
-                          <h4 className="font-bold text-gray-900 line-clamp-1">{item.title}</h4>
-                          <span className="text-[11px] text-gray-400 block truncate font-mono">
+                          <h4 className="font-semibold text-ink line-clamp-1">{item.title}</h4>
+                          <span className="text-[11px] text-ink-faint block truncate font-mono">
                             /{item.slug}
                           </span>
                         </div>
@@ -521,7 +522,7 @@ const ProjectsManagementPage = () => {
 
                     {/* Category */}
                     <td className="p-4">
-                      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 whitespace-nowrap">
+                      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-brand-soft text-[#2258c9] border border-brand/15 whitespace-nowrap">
                         {item.category}
                       </span>
                     </td>
@@ -533,16 +534,16 @@ const ProjectsManagementPage = () => {
                           item.technologies.slice(0, 3).map((tech, i) => (
                             <span
                               key={i}
-                              className="text-[10px] font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded"
+                              className="text-[10px] font-medium bg-canvas text-ink-soft border border-line-soft px-2 py-0.5 rounded"
                             >
                               {tech}
                             </span>
                           ))
                         ) : (
-                          <span className="text-gray-400 text-xs italic">None</span>
+                          <span className="text-ink-faint text-xs italic">None</span>
                         )}
                         {item.technologies && item.technologies.length > 3 && (
-                          <span className="text-[10px] font-semibold text-gray-400">
+                          <span className="text-[10px] font-semibold text-ink-faint">
                             +{item.technologies.length - 3} more
                           </span>
                         )}
@@ -554,16 +555,16 @@ const ProjectsManagementPage = () => {
                       <button
                         type="button"
                         onClick={() => handleToggleStatus(item)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${
                           item.status === 'published'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-success-soft text-[#15803d] border border-success/20 hover:bg-[#dcfce7]'
+                            : 'bg-canvas text-ink-soft border border-line hover:bg-line-soft'
                         }`}
                         title="Click to toggle status"
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            item.status === 'published' ? 'bg-emerald-500' : 'bg-gray-400'
+                            item.status === 'published' ? 'bg-success' : 'bg-ink-faint'
                           }`}
                         />
                         <span>{item.status === 'published' ? 'Published' : 'Draft'}</span>
@@ -571,12 +572,12 @@ const ProjectsManagementPage = () => {
                     </td>
 
                     {/* Order */}
-                    <td className="p-4 text-center font-mono text-xs text-gray-500">
+                    <td className="p-4 text-center font-mono text-xs text-ink-soft">
                       #{item.displayOrder ?? 0}
                     </td>
 
                     {/* Last Updated */}
-                    <td className="p-4 text-xs text-gray-500 whitespace-nowrap">
+                    <td className="p-4 text-xs text-ink-soft whitespace-nowrap">
                       {new Date(item.updatedAt || item.createdAt).toLocaleDateString()}
                     </td>
 
@@ -586,7 +587,7 @@ const ProjectsManagementPage = () => {
                         <button
                           type="button"
                           onClick={() => setViewModalItem(item)}
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          className="p-1.5 text-ink-faint hover:text-brand hover:bg-brand-soft rounded-md transition"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
@@ -594,7 +595,7 @@ const ProjectsManagementPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(item)}
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          className="p-1.5 text-ink-faint hover:text-brand hover:bg-brand-soft rounded-md transition"
                           title="Edit Project"
                         >
                           <Edit className="w-4 h-4" />
@@ -602,7 +603,7 @@ const ProjectsManagementPage = () => {
                         <button
                           type="button"
                           onClick={() => setItemToDelete(item)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="p-1.5 text-ink-faint hover:text-danger hover:bg-danger-soft rounded-md transition"
                           title="Delete Project"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -619,28 +620,28 @@ const ProjectsManagementPage = () => {
 
       {/* View Project Modal */}
       {viewModalItem && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto space-y-4">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-2xl w-full p-5 sm:p-6 shadow-overlay border border-line max-h-[90vh] overflow-y-auto space-y-4 admin-modal-in">
+            <div className="flex items-start justify-between border-b border-line pb-3">
               <div>
-                <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-brand uppercase tracking-wider">
                   {viewModalItem.category}
                 </span>
-                <h3 className="font-extrabold text-gray-900 text-lg sm:text-xl">
+                <h3 className="font-bold text-ink text-base sm:text-lg">
                   {viewModalItem.title}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setViewModalItem(null)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg"
+                className="p-1.5 text-ink-faint hover:text-ink-soft rounded-md transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {viewModalItem.image && (
-              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+              <div className="aspect-video w-full rounded-lg overflow-hidden bg-canvas border border-line">
                 <img
                   src={viewModalItem.image}
                   alt={viewModalItem.imageAlt || viewModalItem.title}
@@ -650,19 +651,19 @@ const ProjectsManagementPage = () => {
             )}
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-soft mb-1">
                 Short Description
               </h4>
-              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <p className="text-xs text-ink leading-relaxed bg-canvas p-3 rounded-md border border-line-soft">
                 {viewModalItem.shortDescription}
               </p>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-soft mb-1">
                 Detailed Description
               </h4>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed whitespace-pre-line">
                 {viewModalItem.description}
               </p>
             </div>
@@ -670,14 +671,14 @@ const ProjectsManagementPage = () => {
             {/* Tech tags */}
             {viewModalItem.technologies?.length > 0 && (
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ink-soft mb-1.5">
                   Technologies
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {viewModalItem.technologies.map((tech, i) => (
                     <span
                       key={i}
-                      className="px-2.5 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-md text-xs font-semibold"
+                      className="px-2.5 py-1 bg-brand-soft border border-brand/15 text-[#2258c9] rounded-md text-xs font-semibold"
                     >
                       {tech}
                     </span>
@@ -689,13 +690,13 @@ const ProjectsManagementPage = () => {
             {/* Learning Outcomes */}
             {viewModalItem.learningOutcomes?.length > 0 && (
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ink-soft mb-1.5">
                   Learning Outcomes
                 </h4>
-                <ul className="space-y-1 text-xs text-gray-600">
+                <ul className="space-y-1 text-xs text-ink-soft">
                   {viewModalItem.learningOutcomes.map((out, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
                       <span>{out}</span>
                     </li>
                   ))}
@@ -703,11 +704,11 @@ const ProjectsManagementPage = () => {
               </div>
             )}
 
-            <div className="flex justify-end pt-3 border-t border-gray-100">
+            <div className="flex justify-end pt-3 border-t border-line">
               <button
                 type="button"
                 onClick={() => setViewModalItem(null)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold"
+                className="px-4 py-2 bg-canvas hover:bg-line-soft text-ink rounded-md text-xs font-semibold transition"
               >
                 Close
               </button>
@@ -718,16 +719,16 @@ const ProjectsManagementPage = () => {
 
       {/* Add / Edit Project Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-7 shadow-2xl border border-gray-100 max-h-[92vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-              <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-3xl w-full p-5 sm:p-6 shadow-overlay border border-line max-h-[92vh] overflow-y-auto admin-modal-in">
+            <div className="flex justify-between items-center pb-4 border-b border-line">
+              <h3 className="font-bold text-ink text-base">
                 {editingItem ? 'Edit Project' : 'Add New Project'}
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg"
+                className="p-1.5 text-ink-faint hover:text-ink-soft rounded-md transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -737,8 +738,8 @@ const ProjectsManagementPage = () => {
               {/* Project Title & Slug */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Project Title <span className="text-red-500">*</span>
+                  <label className="admin-label">
+                    Project Title <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -746,11 +747,11 @@ const ProjectsManagementPage = () => {
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="e.g. Automated CI/CD Application Delivery"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="admin-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Custom Slug (Optional)
                   </label>
                   <input
@@ -758,7 +759,7 @@ const ProjectsManagementPage = () => {
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder="e.g. automated-cicd-delivery (auto-generated if empty)"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-xs"
+                    className="admin-input font-mono text-xs"
                   />
                 </div>
               </div>
@@ -766,13 +767,13 @@ const ProjectsManagementPage = () => {
               {/* Category, Difficulty & Estimated Duration */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Project Category <span className="text-red-500">*</span>
+                  <label className="admin-label">
+                    Project Category <span className="text-danger">*</span>
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    className="admin-input cursor-pointer"
                   >
                     {CATEGORY_OPTIONS.map((cat) => (
                       <option key={cat} value={cat}>
@@ -782,13 +783,13 @@ const ProjectsManagementPage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Difficulty Level
                   </label>
                   <select
                     value={formData.difficulty}
                     onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    className="admin-input cursor-pointer"
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -796,7 +797,7 @@ const ProjectsManagementPage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Estimated Duration
                   </label>
                   <input
@@ -804,15 +805,15 @@ const ProjectsManagementPage = () => {
                     value={formData.estimatedDuration}
                     onChange={(e) => setFormData({ ...formData, estimatedDuration: e.target.value })}
                     placeholder="e.g. 2-3 weeks"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="admin-input"
                   />
                 </div>
               </div>
 
               {/* Short Description */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Short Description (For Cards) <span className="text-red-500">*</span>
+                <label className="admin-label">
+                  Short Description (For Cards) <span className="text-danger">*</span>
                 </label>
                 <textarea
                   required
@@ -821,14 +822,14 @@ const ProjectsManagementPage = () => {
                   value={formData.shortDescription}
                   onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
                   placeholder="Summary displayed on portfolio cards (max 400 characters)..."
-                  className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="admin-input"
                 />
               </div>
 
               {/* Detailed Description */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Detailed Description (For Project Details Page) <span className="text-red-500">*</span>
+                <label className="admin-label">
+                  Detailed Description (For Project Details Page) <span className="text-danger">*</span>
                 </label>
                 <textarea
                   required
@@ -836,13 +837,13 @@ const ProjectsManagementPage = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Full technical overview of architecture, pipeline setup, and challenges solved..."
-                  className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="admin-input"
                 />
               </div>
 
               {/* Dynamic Technologies Used */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                <label className="admin-label">
                   Technologies Used
                 </label>
                 <div className="flex gap-2 mb-2">
@@ -857,12 +858,12 @@ const ProjectsManagementPage = () => {
                       }
                     }}
                     placeholder="e.g. Docker, Jenkins, Kubernetes, Terraform"
-                    className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="admin-input flex-1"
                   />
                   <button
                     type="button"
                     onClick={addTechnology}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
+                    className="px-4 py-2 bg-navy hover:bg-navy-deep text-white rounded-md text-xs font-semibold transition"
                   >
                     Add Tech
                   </button>
@@ -871,13 +872,13 @@ const ProjectsManagementPage = () => {
                   {formData.technologies.map((t, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-xs font-semibold"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-soft text-[#2258c9] border border-brand/15 rounded-md text-xs font-semibold"
                     >
                       <span>{t}</span>
                       <button
                         type="button"
                         onClick={() => removeTechnology(idx)}
-                        className="hover:text-red-600 transition"
+                        className="hover:text-danger transition"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -888,7 +889,7 @@ const ProjectsManagementPage = () => {
 
               {/* Dynamic Learning Outcomes */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                <label className="admin-label">
                   Learning Outcomes
                 </label>
                 <div className="flex gap-2 mb-2">
@@ -903,12 +904,12 @@ const ProjectsManagementPage = () => {
                       }
                     }}
                     placeholder="e.g. Understand automated deployment pipelines"
-                    className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="admin-input flex-1"
                   />
                   <button
                     type="button"
                     onClick={addOutcome}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
+                    className="px-4 py-2 bg-navy hover:bg-navy-deep text-white rounded-md text-xs font-semibold transition"
                   >
                     Add Outcome
                   </button>
@@ -917,16 +918,16 @@ const ProjectsManagementPage = () => {
                   {formData.learningOutcomes.map((out, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700"
+                      className="flex items-center justify-between gap-2 px-3 py-1.5 bg-canvas border border-line rounded-md text-xs text-ink"
                     >
                       <div className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <Check className="w-3.5 h-3.5 text-success shrink-0" />
                         <span>{out}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeOutcome(idx)}
-                        className="text-gray-400 hover:text-red-600"
+                        className="text-ink-faint hover:text-danger transition"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -938,12 +939,12 @@ const ProjectsManagementPage = () => {
               {/* Image Upload & Alt Text */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Project Image Thumbnail
                   </label>
                   <div className="flex items-center gap-3">
                     {imagePreview ? (
-                      <div className="relative w-20 h-14 rounded-xl overflow-hidden border border-indigo-400 shrink-0">
+                      <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-brand shrink-0">
                         <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                         <button
                           type="button"
@@ -958,12 +959,12 @@ const ProjectsManagementPage = () => {
                         </button>
                       </div>
                     ) : (
-                      <div className="w-20 h-14 rounded-xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 shrink-0">
+                      <div className="w-20 h-14 rounded-lg bg-canvas border border-dashed border-line flex items-center justify-center text-ink-faint shrink-0">
                         <Upload className="w-5 h-5" />
                       </div>
                     )}
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
-                      <Upload className="w-3.5 h-3.5 text-gray-500" />
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 border border-line bg-surface rounded-md text-xs font-semibold text-ink hover:bg-canvas transition">
+                      <Upload className="w-3.5 h-3.5 text-ink-soft" />
                       <span>Upload Image</span>
                       <input
                         type="file"
@@ -976,7 +977,7 @@ const ProjectsManagementPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Image Alt Text
                   </label>
                   <input
@@ -984,7 +985,7 @@ const ProjectsManagementPage = () => {
                     value={formData.imageAlt}
                     onChange={(e) => setFormData({ ...formData, imageAlt: e.target.value })}
                     placeholder="e.g. CI/CD Architecture Flow Diagram"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="admin-input"
                   />
                 </div>
               </div>
@@ -992,7 +993,7 @@ const ProjectsManagementPage = () => {
               {/* Optional Links: Github, Live Demo, Video */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     GitHub URL (Optional)
                   </label>
                   <input
@@ -1000,11 +1001,11 @@ const ProjectsManagementPage = () => {
                     value={formData.githubUrl}
                     onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
                     placeholder="https://github.com/..."
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
+                    className="admin-input text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Live Demo URL (Optional)
                   </label>
                   <input
@@ -1012,11 +1013,11 @@ const ProjectsManagementPage = () => {
                     value={formData.liveDemoUrl}
                     onChange={(e) => setFormData({ ...formData, liveDemoUrl: e.target.value })}
                     placeholder="https://demo..."
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
+                    className="admin-input text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Video URL (Optional)
                   </label>
                   <input
@@ -1024,21 +1025,21 @@ const ProjectsManagementPage = () => {
                     value={formData.videoUrl}
                     onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                     placeholder="https://youtube.com/..."
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
+                    className="admin-input text-xs"
                   />
                 </div>
               </div>
 
               {/* Status, Display Order, and Featured */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-line">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Status
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                    className="admin-input cursor-pointer"
                   >
                     <option value="published">Published (Visible on site)</option>
                     <option value="draft">Draft (Hidden from public)</option>
@@ -1046,7 +1047,7 @@ const ProjectsManagementPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="admin-label">
                     Display Order
                   </label>
                   <input
@@ -1054,17 +1055,17 @@ const ProjectsManagementPage = () => {
                     min="0"
                     value={formData.displayOrder}
                     onChange={(e) => setFormData({ ...formData, displayOrder: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="admin-input"
                   />
                 </div>
 
                 <div className="flex items-center sm:pt-6">
-                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-ink">
                     <input
                       type="checkbox"
                       checked={formData.isFeatured}
                       onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                      className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                      className="rounded text-brand focus:ring-brand w-4 h-4"
                     />
                     <span>Featured Project</span>
                   </label>
@@ -1072,19 +1073,19 @@ const ProjectsManagementPage = () => {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
                   disabled={submitting}
-                  className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
+                  className="px-4 py-2 border border-line bg-surface rounded-md text-xs font-semibold text-ink hover:bg-canvas transition disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition disabled:opacity-50"
+                  className="px-5 py-2 bg-navy hover:bg-navy-deep text-white rounded-md text-xs font-semibold shadow-sm transition disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : editingItem ? 'Update Project' : 'Create Project'}
                 </button>
@@ -1096,10 +1097,10 @@ const ProjectsManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
-            <h3 className="font-extrabold text-gray-900 text-base">Delete Project</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-sm w-full p-5 shadow-overlay border border-line space-y-4 admin-modal-in">
+            <h3 className="font-bold text-ink text-base">Delete Project</h3>
+            <p className="text-xs text-ink-soft leading-relaxed">
               Are you sure you want to permanently delete &quot;{itemToDelete.title}&quot;? This action cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -1107,7 +1108,7 @@ const ProjectsManagementPage = () => {
                 type="button"
                 onClick={() => setItemToDelete(null)}
                 disabled={deleting}
-                className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-line bg-surface rounded-md text-xs font-semibold text-ink hover:bg-canvas disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -1115,7 +1116,7 @@ const ProjectsManagementPage = () => {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold"
+                className="px-4 py-2 bg-danger hover:bg-[#b91c1c] text-white rounded-md text-xs font-semibold transition disabled:opacity-50"
               >
                 {deleting ? 'Deleting...' : 'Delete'}
               </button>

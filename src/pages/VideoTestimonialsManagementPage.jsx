@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { resolveMediaUrl } from '../utils/videoUtils';
+import VideoPlayerModal from '../components/VideoPlayerModal';
 import {
   Plus,
   Edit,
@@ -21,7 +23,7 @@ const emptyVideoForm = () => ({
   studentName: '',
   designation: '',
   courseName: '',
-  videoSourceType: 'external',
+  videoSourceType: 'upload',
   videoUrl: '',
   thumbnailUrl: '',
   duration: 0,
@@ -94,7 +96,7 @@ const VideoTestimonialsManagementPage = () => {
       studentName: item.studentName || '',
       designation: item.designation || '',
       courseName: item.courseName || '',
-      videoSourceType: item.videoSourceType || 'external',
+      videoSourceType: item.videoSourceType || 'upload',
       videoUrl: item.videoUrl || '',
       thumbnailUrl: item.thumbnailUrl || '',
       duration: item.duration || 0,
@@ -105,7 +107,7 @@ const VideoTestimonialsManagementPage = () => {
     });
     setVideoFile(null);
     setThumbnailFile(null);
-    setThumbnailPreview(item.thumbnailUrl || '');
+    setThumbnailPreview(item.thumbnailUrl ? resolveMediaUrl(item.thumbnailUrl) : '');
     setModalOpen(true);
   };
 
@@ -253,51 +255,48 @@ const VideoTestimonialsManagementPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="max-w-[1400px] mx-auto space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 flex items-center gap-2.5">
-            <VideoIcon className="h-6 w-6 text-indigo-600" />
-            <span>Student Video Testimonials</span>
+          <h1 className="text-lg font-bold text-ink tracking-tight">
+            Video Testimonials
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Manage student video success stories displayed on the AutoOps School homepage
+          <p className="text-xs text-ink-soft mt-1">
+            Upload MP4 video stories or link YouTube reviews. All uploaded video files are stored directly in MongoDB.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={handleOpenCreateModal}
-          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center gap-2 bg-navy hover:bg-navy-deep text-white font-semibold text-xs px-3.5 py-2 rounded-md shadow-sm transition"
         >
-          <Plus className="h-4 w-4 stroke-[2.5]" />
+          <Plus className="w-4 h-4" />
           <span>Add Video Testimonial</span>
         </button>
       </div>
 
-      {/* Filters and Search Bar */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-2xs flex flex-col md:flex-row gap-3 justify-between items-center">
-        {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+      {/* Filter and Search Bar */}
+      <div className="bg-surface rounded-lg border border-line shadow-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 text-ink-faint absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by student, role, or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Search by student name or designation..."
+            className="admin-input pl-9"
           />
         </form>
 
-        {/* Filter and Sort Controls */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {/* Status Filter */}
-          <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-700">
-            <Filter className="h-3.5 w-3.5 text-gray-500" />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-xs text-ink-soft">
+            <Filter className="w-3.5 h-3.5 text-ink-faint" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent focus:outline-none text-xs font-semibold cursor-pointer"
+              className="border border-line rounded-md px-2.5 py-1.5 text-xs bg-surface text-ink font-medium cursor-pointer"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active Only</option>
@@ -305,187 +304,169 @@ const VideoTestimonialsManagementPage = () => {
             </select>
           </div>
 
-          {/* Sort */}
-          <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-700">
-            <ArrowUpDown className="h-3.5 w-3.5 text-gray-500" />
+          <div className="flex items-center gap-1.5 text-xs text-ink-soft">
+            <ArrowUpDown className="w-3.5 h-3.5 text-ink-faint" />
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="bg-transparent focus:outline-none text-xs font-semibold cursor-pointer"
+              className="border border-line rounded-md px-2.5 py-1.5 text-xs bg-surface text-ink font-medium cursor-pointer"
             >
-              <option value="order-asc">Order: Ascending</option>
-              <option value="order-desc">Order: Descending</option>
-              <option value="newest">Newest First</option>
-              <option value="duration">Longest Duration</option>
+              <option value="order-asc">Order (Lowest first)</option>
+              <option value="order-desc">Order (Highest first)</option>
+              <option value="newest">Newest first</option>
+              <option value="duration">Longest duration</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Video Testimonials Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
+      {/* Testimonials Table */}
+      <div className="bg-surface rounded-lg border border-line shadow-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-left text-xs text-gray-600">
-            <thead className="bg-gray-50 text-gray-500 font-semibold uppercase border-b border-gray-100">
+          <table className="w-full text-left text-xs text-ink-soft border-collapse">
+            <thead className="bg-canvas border-b border-line text-ink-soft font-semibold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="p-4 w-16 text-center">Order</th>
-                <th className="p-4 w-32">Thumbnail</th>
-                <th className="p-4">Student & Role</th>
-                <th className="p-4">Source</th>
-                <th className="p-4 text-center">Duration</th>
-                <th className="p-4 text-center">Featured</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4 w-12 text-center">Order</th>
+                <th className="p-4 w-28">Preview</th>
+                <th className="p-4">Student & Details</th>
+                <th className="p-4 w-28">Storage</th>
+                <th className="p-4 w-24 text-center">Duration</th>
+                <th className="p-4 w-24 text-center">Featured</th>
+                <th className="p-4 w-24 text-center">Status</th>
+                <th className="p-4 w-28 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-line-soft">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="p-8 text-center text-gray-400">
-                    <div className="animate-spin h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full mx-auto" />
+                  <td colSpan="8" className="p-10 text-center text-ink-faint">
+                    Loading video testimonials...
                   </td>
                 </tr>
               ) : videos.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-10 text-center text-gray-400">
+                  <td colSpan="8" className="p-10 text-center text-ink-faint">
                     No video testimonials found. Click "Add Video Testimonial" to upload or link one.
                   </td>
                 </tr>
               ) : (
                 videos.map((item) => (
-                  <tr key={item._id} className="hover:bg-gray-50 transition">
-                    {/* Display Order */}
-                    <td className="p-4 text-center font-bold text-gray-900">
-                      <span className="w-7 h-7 rounded-lg bg-gray-100 border border-gray-200 inline-flex items-center justify-center text-xs">
+                  <tr key={item._id} className="hover:bg-canvas transition">
+                    <td className="p-4 text-center font-bold text-ink">
+                      <span className="w-7 h-7 rounded-lg bg-canvas border border-line inline-flex items-center justify-center text-xs">
                         {item.displayOrder}
                       </span>
                     </td>
 
-                    {/* Thumbnail preview */}
                     <td className="p-4">
                       <div
                         onClick={() => setPreviewVideo(item)}
-                        className="relative w-24 aspect-video rounded-xl bg-slate-900 overflow-hidden cursor-pointer group shadow-2xs"
+                        className="relative w-24 aspect-video rounded-lg bg-navy-deep overflow-hidden cursor-pointer group shadow-card"
                         title="Click to preview video"
                       >
                         {item.thumbnailUrl ? (
                           <img
-                            src={item.thumbnailUrl}
+                            src={resolveMediaUrl(item.thumbnailUrl)}
                             alt={item.studentName}
                             className="w-full h-full object-cover group-hover:opacity-80 transition"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white/50 bg-[#102747]">
+                          <div className="w-full h-full flex items-center justify-center text-white/50 bg-navy-deep">
                             <VideoIcon className="w-5 h-5" />
                           </div>
                         )}
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-6 h-6 rounded-full bg-[#F4D36B] text-[#102747] flex items-center justify-center shadow-sm">
+                          <div className="w-6 h-6 rounded-full bg-accent text-navy flex items-center justify-center shadow-sm">
                             <Play className="w-3 h-3 fill-current ml-0.5" />
                           </div>
                         </div>
                       </div>
                     </td>
 
-                    {/* Student Name & Designation */}
                     <td className="p-4">
                       <div className="min-w-0">
-                        <p className="font-bold text-gray-900 leading-snug truncate text-sm">
+                        <p className="font-bold text-ink leading-snug truncate text-sm">
                           {item.studentName}
                         </p>
-                        <p className="text-xs font-semibold text-gray-500 truncate mt-0.5">
+                        <p className="text-xs font-semibold text-ink-soft truncate mt-0.5">
                           {item.designation}
                         </p>
                         {item.description && (
-                          <p className="text-[11px] text-gray-400 line-clamp-1 mt-1">
+                          <p className="text-[11px] text-ink-faint line-clamp-1 mt-1">
                             {item.description}
                           </p>
                         )}
                       </div>
                     </td>
 
-                    {/* Source */}
                     <td className="p-4">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-700 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink bg-canvas border border-line px-2 py-0.5 rounded-md">
                         {item.videoSourceType === 'upload' ? (
                           <>
-                            <Upload className="w-3 h-3 text-indigo-600" />
-                            <span>MP4 Upload</span>
+                            <Upload className="w-3 h-3 text-brand" />
+                            <span>MongoDB Raw</span>
                           </>
                         ) : (
                           <>
-                            <LinkIcon className="w-3 h-3 text-red-500" />
+                            <LinkIcon className="w-3 h-3 text-danger" />
                             <span>YouTube / URL</span>
                           </>
                         )}
                       </span>
                     </td>
 
-                    {/* Duration */}
-                    <td className="p-4 text-center font-medium text-gray-600">
+                    <td className="p-4 text-center font-medium text-ink-soft">
                       <span className="inline-flex items-center gap-1 text-xs">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                        <Clock className="w-3.5 h-3.5 text-ink-faint" />
                         <span>{formatDuration(item.duration)}</span>
                       </span>
                     </td>
 
-                    {/* Featured */}
                     <td className="p-4 text-center">
                       {item.isFeatured ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                          <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#92400e] bg-warning-soft border border-warning/20 px-2 py-0.5 rounded-full">
+                          <Sparkles className="w-3 h-3 text-warning" />
                           <span>Featured</span>
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-xs">—</span>
+                        <span className="text-ink-faint text-xs">—</span>
                       )}
                     </td>
 
-                    {/* Status Toggle */}
                     <td className="p-4 text-center">
                       <button
                         type="button"
                         onClick={() => handleToggleStatus(item)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
                           item.status === 'active'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                            : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                            ? 'bg-success-soft text-[#15803d] border border-success/20 hover:bg-[#dcfce7]'
+                            : 'bg-canvas text-ink-soft border border-line hover:bg-line-soft'
                         }`}
-                        title="Click to toggle status"
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            item.status === 'active' ? 'bg-emerald-500' : 'bg-gray-400'
+                            item.status === 'active' ? 'bg-success' : 'bg-ink-faint'
                           }`}
                         />
                         <span>{item.status === 'active' ? 'Active' : 'Inactive'}</span>
                       </button>
                     </td>
 
-                    {/* Actions */}
                     <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewVideo(item)}
-                          className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                          title="Preview Video"
-                        >
-                          <Play className="w-4 h-4 fill-current" />
-                        </button>
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(item)}
-                          className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                          title="Edit Video Testimonial"
+                          className="p-1.5 rounded-md text-ink-faint hover:text-brand hover:bg-brand-soft transition cursor-pointer"
+                          title="Edit"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setItemToDelete(item)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="Delete Video Testimonial"
+                          className="p-1.5 rounded-md text-ink-faint hover:text-danger hover:bg-danger-soft transition cursor-pointer"
+                          title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -499,256 +480,175 @@ const VideoTestimonialsManagementPage = () => {
         </div>
       </div>
 
-      {/* Add / Edit Modal */}
+      {/* Create / Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-              <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-2xl w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto shadow-overlay border border-line admin-modal-in">
+            <div className="flex items-center justify-between pb-4 border-b border-line-soft">
+              <h2 className="text-lg font-bold text-ink">
                 {editingItem ? 'Edit Video Testimonial' : 'Add New Video Testimonial'}
-              </h3>
+              </h2>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg"
+                className="w-8 h-8 rounded-full bg-canvas text-ink-soft hover:bg-canvas flex items-center justify-center transition"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              {/* Student Name */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Student Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.studentName}
-                  onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-                  placeholder="e.g. Amit Verma"
-                  className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Course Name & Student Designation */}
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    Student Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.studentName}
+                    onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                    placeholder="e.g. Ramesh Kumar"
+                    className="admin-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    Designation / Company
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.designation}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    placeholder="e.g. DevOps Engineer at Wipro"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">
                     Course Name
                   </label>
                   <input
                     type="text"
                     value={formData.courseName}
                     onChange={(e) => setFormData({ ...formData, courseName: e.target.value })}
-                    placeholder="e.g. DevOps Engineering Masterclass"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    placeholder="e.g. Complete DevOps Engineering Bootcamp"
+                    className="admin-input"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Student Designation / Role
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    Video Source Type
                   </label>
-                  <input
-                    type="text"
-                    value={formData.designation}
-                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                    placeholder="e.g. Cloud Engineer / DevOps Engineer"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                  <select
+                    value={formData.videoSourceType}
+                    onChange={(e) => setFormData({ ...formData, videoSourceType: e.target.value })}
+                    className="admin-input cursor-pointer"
+                  >
+                    <option value="upload">Upload MP4 Video (Stored in MongoDB)</option>
+                    <option value="external">External Video Link (YouTube / Vimeo)</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Video Source Type */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Video Source Type <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <label
-                    className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer text-xs font-semibold transition ${
-                      formData.videoSourceType === 'external'
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sourceType"
-                      checked={formData.videoSourceType === 'external'}
-                      onChange={() => setFormData({ ...formData, videoSourceType: 'external' })}
-                      className="text-indigo-600"
-                    />
-                    <span>External URL (YouTube)</span>
-                  </label>
-
-                  <label
-                    className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer text-xs font-semibold transition ${
-                      formData.videoSourceType === 'upload'
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sourceType"
-                      checked={formData.videoSourceType === 'upload'}
-                      onChange={() => setFormData({ ...formData, videoSourceType: 'upload' })}
-                      className="text-indigo-600"
-                    />
-                    <span>Upload MP4 Video</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Video Source Input / Upload */}
-              {formData.videoSourceType === 'external' ? (
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    YouTube or Video URL <span className="text-red-500">*</span>
+              {/* Upload section if "upload" */}
+              {formData.videoSourceType === 'upload' ? (
+                <div className="space-y-2 bg-brand-soft/50 p-4 rounded-lg border border-brand/15">
+                  <label className="block text-xs font-bold text-navy">
+                    Upload MP4 / WebM Video File (Max 100MB)
                   </label>
                   <input
-                    type="url"
-                    required
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    onChange={handleVideoFileChange}
+                    className="w-full text-xs text-ink-soft file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-navy file:text-white hover:file:bg-navy-deep cursor-pointer"
                   />
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Accepts standard YouTube watch links, shorts, or direct embed URLs.
-                  </p>
+                  {editingItem && editingItem.videoSourceType === 'upload' && !videoFile && (
+                    <p className="text-[11px] text-ink-soft mt-1">
+                      Current video is already saved in MongoDB. Leave blank to keep existing video, or select a new file to replace it.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Upload MP4 Video File {!editingItem && <span className="text-red-500">*</span>}
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    External Video URL * (YouTube / Vimeo)
                   </label>
-                  <div className="flex items-center gap-3">
-                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition shadow-2xs">
-                      <Upload className="w-4 h-4 text-indigo-600" />
-                      <span>{videoFile ? videoFile.name : 'Choose MP4 Video File'}</span>
-                      <input
-                        type="file"
-                        accept="video/mp4, video/webm, video/quicktime"
-                        onChange={handleVideoFileChange}
-                        className="hidden"
-                      />
-                    </label>
-                    {formData.videoUrl && !videoFile && (
-                      <span className="text-xs text-emerald-600 font-semibold">
-                        Existing video uploaded
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Maximum file size: 100MB. Duration is automatically detected if supported.
-                  </p>
+                  <input
+                    type="url"
+                    value={formData.videoUrl}
+                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="admin-input"
+                  />
                 </div>
               )}
 
-              {/* Thumbnail Image */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Video Thumbnail Image (Optional)
+              {/* Thumbnail Upload */}
+              <div className="space-y-2 bg-canvas p-4 rounded-lg border border-line">
+                <label className="block text-xs font-bold text-ink">
+                  Custom Video Thumbnail (JPG, PNG, WebP)
                 </label>
                 <div className="flex items-center gap-4">
-                  {thumbnailPreview ? (
-                    <div className="relative w-28 aspect-video rounded-xl overflow-hidden border border-gray-300 shrink-0">
-                      <img src={thumbnailPreview} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setThumbnailFile(null);
-                          setThumbnailPreview('');
-                          setFormData({ ...formData, thumbnailUrl: '' });
-                        }}
-                        className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-28 aspect-video rounded-xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 shrink-0">
-                      <VideoIcon className="w-5 h-5" />
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleThumbnailChange}
+                    className="text-xs text-ink-soft file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-navy file:text-white hover:file:bg-navy-deep cursor-pointer"
+                  />
+                  {thumbnailPreview && (
+                    <div className="relative w-16 aspect-video rounded-lg overflow-hidden border border-line shrink-0">
+                      <img
+                        src={thumbnailPreview}
+                        alt="Thumbnail preview"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   )}
-
-                  <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
-                    <Upload className="w-3.5 h-3.5 text-gray-500" />
-                    <span>Upload Thumbnail</span>
-                    <input
-                      type="file"
-                      accept="image/png, image/jpeg, image/jpg, image/webp"
-                      onChange={handleThumbnailChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                <p className="text-[11px] text-gray-400 mt-1">
-                  For YouTube videos, the high-resolution thumbnail is extracted automatically if left empty.
-                </p>
-              </div>
-
-              {/* Duration & Display Order */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Duration in Seconds
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-                    placeholder="e.g. 180 (for 3 mins)"
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                  <span className="text-[11px] text-gray-400 block mt-1">
-                    Formatted: {formatDuration(formData.duration)}
-                  </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.displayOrder}
-                    onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Short Description / Highlight (Optional)
+                <label className="block text-xs font-bold text-ink mb-1">
+                  Brief Student Feedback / Testimonial Quote
                 </label>
                 <textarea
-                  rows={2}
-                  maxLength={300}
+                  rows="3"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Key career transition takeaway..."
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  placeholder="Share a short highlight from the student's learning experience..."
+                  className="admin-input"
                 />
               </div>
 
-              {/* Status & Featured */}
-              <div className="grid grid-cols-2 gap-4 pt-1">
+              {/* Status and Display Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Visibility Status
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.displayOrder}
+                    onChange={(e) => setFormData({ ...formData, displayOrder: e.target.value })}
+                    className="admin-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    Status
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl bg-white"
+                    className="admin-input"
                   >
                     <option value="active">Active (Visible)</option>
                     <option value="inactive">Inactive</option>
@@ -756,12 +656,12 @@ const VideoTestimonialsManagementPage = () => {
                 </div>
 
                 <div className="flex items-center pt-6">
-                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-ink">
                     <input
                       type="checkbox"
                       checked={formData.isFeatured}
                       onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                      className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded text-brand focus:ring-brand h-4 w-4"
                     />
                     <span>Highlight as Featured</span>
                   </label>
@@ -769,19 +669,19 @@ const VideoTestimonialsManagementPage = () => {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-line-soft">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
                   disabled={submitting}
-                  className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md border border-line bg-surface text-xs font-semibold text-ink hover:bg-canvas transition disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-navy hover:bg-navy-deep text-white rounded-md text-xs font-semibold transition shadow-sm disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : 'Save Video Testimonial'}
                 </button>
@@ -793,19 +693,19 @@ const VideoTestimonialsManagementPage = () => {
 
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
-            <h3 className="font-bold text-gray-900 text-base">Delete Video Testimonial?</h3>
-            <p className="text-xs text-gray-600">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-sm w-full p-5 shadow-overlay border border-line space-y-4 admin-modal-in">
+            <h3 className="font-bold text-ink text-base">Delete Video Testimonial?</h3>
+            <p className="text-xs text-ink-soft">
               Are you sure you want to delete the video testimonial for{' '}
-              <strong className="text-gray-900">{itemToDelete.studentName}</strong>? This cannot be undone.
+              <strong className="text-ink">{itemToDelete.studentName}</strong>? This cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setItemToDelete(null)}
                 disabled={deleting}
-                className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="px-3.5 py-2 border border-line rounded-md text-xs font-semibold text-ink hover:bg-canvas disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -813,7 +713,7 @@ const VideoTestimonialsManagementPage = () => {
                 type="button"
                 onClick={handleDeleteConfirm}
                 disabled={deleting}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-50"
+                className="px-3.5 py-2 bg-danger hover:bg-[#b91c1c] text-white rounded-md text-xs font-semibold transition shadow-sm disabled:opacity-50"
               >
                 {deleting ? 'Deleting...' : 'Delete'}
               </button>
@@ -822,52 +722,10 @@ const VideoTestimonialsManagementPage = () => {
         </div>
       )}
 
-      {/* Video Preview Modal */}
-      {previewVideo && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setPreviewVideo(null)}
-        >
-          <div
-            className="bg-[#102747] rounded-3xl overflow-hidden max-w-3xl w-full shadow-2xl border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0d213c]">
-              <div>
-                <h3 className="text-white font-bold text-sm">
-                  {previewVideo.studentName} — Preview
-                </h3>
-                <p className="text-xs text-gray-400">{previewVideo.designation}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPreviewVideo(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="relative aspect-video bg-black">
-              {previewVideo.videoUrl.includes('youtube.com') || previewVideo.videoUrl.includes('youtu.be') ? (
-                <iframe
-                  src={`${previewVideo.videoUrl}${previewVideo.videoUrl.includes('?') ? '&' : '?'}autoplay=1`}
-                  title="Preview"
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                />
-              ) : (
-                <video src={previewVideo.videoUrl} controls autoPlay className="w-full h-full object-contain">
-                  Your browser does not support HTML5 video playback.
-                </video>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Video Preview Modal using shared component */}
+      <VideoPlayerModal video={previewVideo} onClose={() => setPreviewVideo(null)} />
     </div>
   );
 };
 
 export default VideoTestimonialsManagementPage;
-

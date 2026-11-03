@@ -13,12 +13,15 @@ import {
   Check, 
   AlertCircle,
   RefreshCw,
-  FolderTree
+  FolderTree,
+  BookOpen
 } from 'lucide-react';
 import { ConfirmDialog, useFeedback } from '../components/Feedback';
+import { DataTable, btn } from '../components/ui';
 import { courseTypeLabel, formatCoursePrice, isFreeCourse, resolveThumbnailUrl, PLACEHOLDER_THUMB } from '../utils/courseAccess';
 import { openMaterial } from '../utils/materialAccess';
 import { Image as ImageIcon } from 'lucide-react';
+import CourseReviewsSection from '../components/CourseReviewsSection';
 
 const emptyCourseForm = () => ({
   title: '',
@@ -29,12 +32,14 @@ const emptyCourseForm = () => ({
   level: 'Beginner',
   language: 'English',
   duration: '10 Hours',
+  videoDuration: 10,
   curriculumTitle: '',
   learningOutcomes: '',
   price: 0,
   discountPrice: 0,
   isFree: true,
-  status: 'published'
+  status: 'published',
+  freePreviewCount: 2
 });
 
 const CourseManagementPage = () => {
@@ -118,6 +123,7 @@ const CourseManagementPage = () => {
   // Open Edit Course modal & load existing materials + modules
   const handleOpenEdit = async (course) => {
     setEditingCourse(course);
+    const parsedDuration = course.videoDuration || parseFloat(course.duration) || 10;
     setFormData({
       title: course.title || '',
       shortDescription: course.shortDescription || '',
@@ -126,13 +132,15 @@ const CourseManagementPage = () => {
       category: course.category?._id || course.category || '',
       level: course.level || 'Beginner',
       language: course.language || 'English',
-      duration: course.duration || '10 Hours',
+      duration: course.duration || `${parsedDuration} Hours`,
+      videoDuration: parsedDuration,
       curriculumTitle: course.curriculumTitle || '',
       learningOutcomes: (course.learningOutcomes || []).join('\n'),
       price: course.price || 0,
       discountPrice: course.discountPrice || 0,
       isFree: course.isFree !== undefined ? course.isFree : true,
-      status: course.status || 'published'
+      status: course.status || 'published',
+      freePreviewCount: course.freePreviewCount !== undefined ? Number(course.freePreviewCount) : 2
     });
     setThumbnailFile(null);
     setThumbnailPreview(course.thumbnail ? resolveThumbnailUrl(course.thumbnail) : '');
@@ -502,10 +510,10 @@ const CourseManagementPage = () => {
 
   const statusTone = (status) =>
     status === 'published'
-      ? 'bg-emerald-50 text-emerald-700'
+      ? 'bg-success-soft text-[#15803d] border border-success/20'
       : status === 'archived'
-        ? 'bg-gray-100 text-gray-600'
-        : 'bg-amber-50 text-amber-700';
+        ? 'bg-canvas text-ink-soft border border-line'
+        : 'bg-warning-soft text-[#92400e] border border-warning/20';
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
@@ -521,118 +529,148 @@ const CourseManagementPage = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">Courses Management</h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <h1 className="text-lg font-bold text-ink tracking-tight">Courses Management</h1>
+          <p className="text-xs text-ink-soft mt-1">
             Create courses with minimal required fields, attach PDF notes directly, and manage enrollments.
           </p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#173563] hover:bg-[#102747] text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition"
-        >
+        <button onClick={handleOpenAdd} className={btn('primary', 'md', 'w-full sm:w-auto justify-center')}>
           <Plus className="h-4 w-4" /> Add New Course
         </button>
       </div>
 
       {/* Courses Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-xs text-gray-600">
-            <thead className="bg-gray-50 text-gray-500 font-semibold uppercase">
-              <tr>
-                <th className="p-4">Course Title</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Price / Type</th>
-                <th className="p-4">Curriculum</th>
-                <th className="p-4">Students</th>
-                <th className="p-4">Access Duration</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {courses.map((c) => (
-                <tr key={c._id} className="hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={resolveThumbnailUrl(c.thumbnail)}
-                        alt=""
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PLACEHOLDER_THUMB; }}
-                        className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0 border border-gray-200"
-                      />
-                      <div>
-                        <p className="font-bold text-gray-900 line-clamp-1">{c.title}</p>
-                        <p className="text-[11px] text-gray-400">{c.level}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4 font-medium text-gray-700">{c.category?.name || 'Uncategorised'}</td>
-                  <td className="p-4">
-                    <span className={`font-bold ${isFreeCourse(c) ? 'text-emerald-600' : 'text-gray-900'}`}>
-                      {formatCoursePrice(c)}
-                    </span>
-                    <span className="block text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
-                      {courseTypeLabel(c)}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-700">
-                    <span className="font-semibold">{c.moduleCount || 0}</span> modules
-                    <span className="block text-[10px] text-gray-400">{c.lessonCount || 0} lessons</span>
-                  </td>
-                  <td className="p-4 font-semibold text-gray-800">{c.enrollmentCount || 0}</td>
-                  <td className="p-4 text-slate-700 font-medium">3 Calendar Months</td>
-                  <td className="p-4">
-                    <button
-                      type="button"
-                      onClick={() => handleTogglePublish(c)}
-                      title="Publish or unpublish this course"
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition hover:opacity-80 ${statusTone(c.status)}`}
-                    >
-                      {c.status}
-                    </button>
-                  </td>
-                  <td className="p-4 text-right whitespace-nowrap space-x-2">
-                    <button
-                      onClick={() => handleOpenEdit(c)}
-                      className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition"
-                      title="Edit Course & PDFs"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setCourseToDelete(c._id)}
-                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                      title="Delete Course"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        loading={loading}
+        rows={courses}
+        minWidthClass="min-w-[900px]"
+        empty={{
+          icon: BookOpen,
+          title: 'No courses yet',
+          message: 'Create your first course to publish it in the student catalog.',
+          action: (
+            <button onClick={handleOpenAdd} className={btn('primary')}>
+              <Plus className="h-4 w-4" /> Add New Course
+            </button>
+          )
+        }}
+        columns={[
+          {
+            key: 'title',
+            header: 'Course Title',
+            render: (c) => (
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src={resolveThumbnailUrl(c.thumbnail)}
+                  alt=""
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PLACEHOLDER_THUMB; }}
+                  className="w-10 h-10 rounded-lg object-cover bg-canvas border border-line shrink-0"
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-ink line-clamp-1">{c.title}</p>
+                  <p className="text-[11px] text-ink-faint">{c.level}</p>
+                </div>
+              </div>
+            )
+          },
+          {
+            key: 'category',
+            header: 'Category',
+            render: (c) => <span className="font-medium text-ink-soft whitespace-nowrap">{c.category?.name || 'Uncategorised'}</span>
+          },
+          {
+            key: 'price',
+            header: 'Price / Type',
+            render: (c) => (
+              <div>
+                <span className={`font-semibold ${isFreeCourse(c) ? 'text-success' : 'text-ink'}`}>
+                  {formatCoursePrice(c)}
+                </span>
+                <span className="block text-[10px] uppercase tracking-wide text-ink-faint font-semibold">
+                  {courseTypeLabel(c)}
+                </span>
+              </div>
+            )
+          },
+          {
+            key: 'curriculum',
+            header: 'Curriculum',
+            render: (c) => (
+              <div>
+                <span className="font-semibold text-ink">{c.moduleCount || 0}</span>
+                <span className="text-ink-soft"> modules</span>
+                <span className="block text-[10px] text-ink-faint">{c.lessonCount || 0} lessons</span>
+              </div>
+            )
+          },
+          {
+            key: 'students',
+            header: 'Students',
+            render: (c) => <span className="font-semibold text-ink">{c.enrollmentCount || 0}</span>
+          },
+          {
+            key: 'access',
+            header: 'Access Duration',
+            render: () => <span className="font-medium text-ink-soft whitespace-nowrap">3 Calendar Months</span>
+          },
+          {
+            key: 'status',
+            header: 'Status',
+            render: (c) => (
+              <button
+                type="button"
+                onClick={() => handleTogglePublish(c)}
+                title="Publish or unpublish this course"
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition hover:opacity-80 ${statusTone(c.status)}`}
+              >
+                {c.status}
+              </button>
+            )
+          },
+          {
+            key: 'actions',
+            header: 'Actions',
+            className: 'text-right',
+            render: (c) => (
+              <div className="flex items-center justify-end gap-1">
+                <button
+                  onClick={() => handleOpenEdit(c)}
+                  className="p-1.5 rounded-md text-ink-faint hover:text-brand hover:bg-brand-soft transition cursor-pointer"
+                  title="Edit Course & PDFs"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setCourseToDelete(c._id)}
+                  className="p-1.5 rounded-md text-ink-faint hover:text-danger hover:bg-danger-soft transition cursor-pointer"
+                  title="Delete Course"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )
+          }
+        ]}
+      />
 
       {/* Main Course Modal (Add New Course & Edit Course with Integrated PDF Section) */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-3xl w-full p-5 sm:p-7 space-y-6 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-surface rounded-t-xl sm:rounded-lg max-w-3xl w-full p-5 sm:p-6 space-y-6 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-overlay border border-line admin-modal-in">
             {/* Modal Title */}
-            <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+            <div className="flex items-center justify-between pb-3 border-b border-line">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-base font-bold text-ink">
                   {editingCourse ? 'Edit Course & Learning Materials' : 'Create New Course with PDF Materials'}
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-ink-soft mt-0.5">
                   Configure course details, add module headings, and upload study PDFs in one unified form.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="text-ink-faint hover:text-ink-soft p-1 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -641,48 +679,48 @@ const CourseManagementPage = () => {
             <form onSubmit={handleSubmit} className="space-y-6 text-xs">
               {/* SECTION 1: Basic Course Information */}
               <div className="space-y-3">
-                <h4 className="text-sm font-bold text-[#173563] uppercase tracking-wide flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-navy uppercase tracking-wide flex items-center gap-1.5">
                   1. Course Information
                 </h4>
 
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Course Title *</label>
+                  <label className="admin-label">Course Title *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Master Production DevOps &amp; Kubernetes"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-[#173563]"
+                    className="admin-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Short Description *</label>
+                  <label className="admin-label">Short Description *</label>
                   <input
                     type="text"
                     required
                     placeholder="Brief 1-2 sentence overview shown in cards"
                     value={formData.shortDescription}
                     onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                    className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-[#173563]"
+                    className="admin-input"
                   />
                 </div>
 
                 {/* Course Thumbnail Image Upload Component */}
-                <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                <div className="bg-canvas p-4 rounded-lg border border-line space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="block font-semibold text-gray-800 text-xs">
+                    <label className="block font-semibold text-ink text-xs">
                       Course Thumbnail Image
                     </label>
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-[10px] text-ink-soft">
                       JPG, PNG, WebP (Max 5MB) • Stored in MongoDB
                     </span>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-center gap-4">
                     {/* Thumbnail Preview Box */}
-                    <div className="relative w-36 h-24 rounded-xl overflow-hidden bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center shrink-0">
+                    <div className="relative w-36 h-24 rounded-lg overflow-hidden bg-canvas border-2 border-dashed border-line flex items-center justify-center shrink-0">
                       {thumbnailPreview ? (
                         <img
                           src={thumbnailPreview}
@@ -694,7 +732,7 @@ const CourseManagementPage = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="text-center p-2 text-gray-400">
+                        <div className="text-center p-2 text-ink-faint">
                           <ImageIcon className="w-6 h-6 mx-auto mb-1 opacity-60" />
                           <span className="text-[10px] block">No thumbnail</span>
                         </div>
@@ -704,7 +742,7 @@ const CourseManagementPage = () => {
                     {/* Controls: Browse Files & Remove */}
                     <div className="space-y-2 flex-1 w-full text-left">
                       <div className="flex flex-wrap items-center gap-2">
-                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#173563] hover:bg-[#102747] text-white rounded-lg cursor-pointer text-xs font-semibold shadow-xs transition">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-navy hover:bg-navy-deep text-white rounded-md cursor-pointer text-xs font-semibold shadow-sm transition">
                           <Upload className="w-3.5 h-3.5" />
                           <span>{thumbnailPreview ? 'Change Thumbnail' : 'Upload Thumbnail'}</span>
                           <input
@@ -719,7 +757,7 @@ const CourseManagementPage = () => {
                           <button
                             type="button"
                             onClick={handleRemoveThumbnail}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-danger-soft hover:bg-[#fee2e2] text-danger border border-danger/20 rounded-md text-xs font-semibold transition"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             <span>Remove Image</span>
@@ -728,20 +766,20 @@ const CourseManagementPage = () => {
                       </div>
 
                       {thumbnailFile && (
-                        <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                        <p className="text-[11px] text-success font-medium flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" />
                           Selected: {thumbnailFile.name} ({Math.round(thumbnailFile.size / 1024)} KB)
                         </p>
                       )}
 
                       {!thumbnailFile && thumbnailPreview && (
-                        <p className="text-[10px] text-gray-500">
+                        <p className="text-[10px] text-ink-soft">
                           Active thumbnail stored in MongoDB. Click "Change Thumbnail" to replace with a new image.
                         </p>
                       )}
 
                       {!thumbnailPreview && (
-                        <p className="text-[10px] text-gray-400">
+                        <p className="text-[10px] text-ink-faint">
                           Select an image from your computer to store directly in MongoDB. If left blank, the branded placeholder will be shown.
                         </p>
                       )}
@@ -750,37 +788,79 @@ const CourseManagementPage = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Full Curriculum Description</label>
+                  <label className="admin-label">Full Curriculum Description</label>
                   <textarea
                     rows={3}
                     placeholder="Detailed explanation of the course syllabus and topics covered..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-[#173563]"
+                    className="admin-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Learning Objectives</label>
-                  <textarea
-                    rows={4}
-                    placeholder={'One objective per line, e.g.\nUnderstand Linux fundamentals.\nUse basic Linux terminal commands.'}
-                    value={formData.learningOutcomes}
-                    onChange={(e) => setFormData({ ...formData, learningOutcomes: e.target.value })}
-                    className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-[#173563]"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    Saved as a list on the course record and shown on the student course details page.
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-semibold text-ink">
+                      Learning Objectives (What You Will Learn)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const lines = formData.learningOutcomes ? formData.learningOutcomes.split('\n') : [];
+                        lines.push('');
+                        setFormData({ ...formData, learningOutcomes: lines.join('\n') });
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-navy hover:text-brand bg-brand-soft hover:bg-line-soft px-2.5 py-1 rounded-md transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Objective
+                    </button>
+                  </div>
+
+                  {/* Individual objective items editor */}
+                  <div className="space-y-2 mb-2">
+                    {(formData.learningOutcomes ? formData.learningOutcomes.split('\n') : []).map((outcome, oIdx, arr) => (
+                      <div key={oIdx} className="flex items-center gap-2">
+                        <div className="shrink-0 w-6 h-6 rounded-full bg-success-soft text-[#15803d] border border-success/20 text-xs font-bold flex items-center justify-center">
+                          {oIdx + 1}
+                        </div>
+                        <input
+                          type="text"
+                          value={outcome}
+                          placeholder={`Learning outcome #${oIdx + 1} (e.g. Understand core DevOps concepts)`}
+                          onChange={(e) => {
+                            const newArr = [...arr];
+                            newArr[oIdx] = e.target.value;
+                            setFormData({ ...formData, learningOutcomes: newArr.join('\n') });
+                          }}
+                          className="admin-input flex-1 h-9"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newArr = arr.filter((_, i) => i !== oIdx);
+                            setFormData({ ...formData, learningOutcomes: newArr.join('\n') });
+                          }}
+                          className="shrink-0 p-1.5 text-ink-faint hover:text-danger hover:bg-danger-soft rounded-md transition"
+                          title="Remove objective"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[10px] text-ink-faint mt-1">
+                    Saved dynamically on the course record and rendered in the "What You Will Learn" section of the Course Detail page.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Category</label>
+                    <label className="admin-label">Category</label>
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full p-2.5 border rounded-xl bg-white"
+                      className="admin-input cursor-pointer"
                     >
                       {categories.map((cat) => (
                         <option key={cat._id} value={cat._id}>{cat.name}</option>
@@ -788,11 +868,49 @@ const CourseManagementPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Difficulty Level</label>
+                    <label className="admin-label">Language</label>
+                    <input
+                      type="text"
+                      value={formData.language}
+                      onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="admin-label">
+                      Course Video Duration *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      step="any"
+                      placeholder="Enter total course duration"
+                      value={formData.videoDuration}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData({
+                          ...formData,
+                          videoDuration: val === '' ? '' : Number(val),
+                          duration: val ? `${val} Hours` : ''
+                        });
+                      }}
+                      className="admin-input"
+                    />
+                    <p className="text-[10px] text-ink-soft mt-1">
+                      Unit: Hours. This duration is displayed dynamically on the student completion certificate.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="admin-label">Difficulty Level</label>
                     <select
                       value={formData.level}
                       onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                      className="w-full p-2.5 border rounded-xl bg-white"
+                      className="admin-input cursor-pointer"
                     >
                       <option value="Beginner">Beginner</option>
                       <option value="Intermediate">Intermediate</option>
@@ -804,7 +922,7 @@ const CourseManagementPage = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Course Type</label>
+                    <label className="admin-label">Course Type</label>
                     <select
                       value={formData.isFree ? 'true' : 'false'}
                       onChange={(e) => {
@@ -816,14 +934,14 @@ const CourseManagementPage = () => {
                           discountPrice: isFree ? 0 : formData.discountPrice
                         });
                       }}
-                      className="w-full p-2.5 border rounded-xl bg-white"
+                      className="admin-input cursor-pointer"
                     >
                       <option value="true">Free Course</option>
                       <option value="false">Paid Course</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Price (₹)</label>
+                    <label className="admin-label">Price (₹)</label>
                     <input
                       type="number"
                       min={0}
@@ -833,56 +951,72 @@ const CourseManagementPage = () => {
                         // A ₹0 course is a free course: keep type and price in step
                         setFormData({ ...formData, price, isFree: price === 0 });
                       }}
-                      className="w-full p-2.5 border rounded-xl"
+                      className="admin-input"
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Discount Price (₹)</label>
+                    <label className="admin-label">Discount Price (₹)</label>
                     <input
                       type="number"
                       min={0}
                       value={formData.discountPrice}
                       disabled={formData.isFree}
                       onChange={(e) => setFormData({ ...formData, discountPrice: Math.max(0, Number(e.target.value) || 0) })}
-                      className="w-full p-2.5 border rounded-xl disabled:bg-slate-50 disabled:text-gray-400"
+                      className="admin-input disabled:bg-canvas disabled:text-ink-faint"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Publishing Status</label>
+                    <label className="admin-label">Publishing Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full p-2.5 border rounded-xl bg-white"
+                      className="admin-input cursor-pointer"
                     >
                       <option value="published">Published (Visible in Catalog)</option>
                       <option value="draft">Draft (Hidden)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Access Window</label>
+                    <label className="admin-label">Free Preview Lessons</label>
                     <input
-                      type="text"
-                      disabled
-                      value="3 Calendar Months Access"
-                      className="w-full p-2.5 border rounded-xl bg-slate-50 text-slate-500 font-medium"
+                      type="number"
+                      min={0}
+                      max={50}
+                      value={formData.freePreviewCount !== undefined ? formData.freePreviewCount : 2}
+                      onChange={(e) => setFormData({ ...formData, freePreviewCount: Math.max(0, Number(e.target.value) || 0) })}
+                      className="admin-input"
+                                            aria-label="Free preview lessons"
                     />
+                    <p className="text-[10px] text-ink-soft mt-1">
+                      First {formData.freePreviewCount || 2} lessons are unlocked for free preview without login/purchase. Remaining require purchase.
+                    </p>
                   </div>
+                </div>
+
+                <div>
+                  <label className="admin-label">Access Window</label>
+                  <input
+                    type="text"
+                    disabled
+                    value="3 Calendar Months Access"
+                    className="admin-input bg-canvas text-ink-soft font-medium"
+                  />
                 </div>
               </div>
 
               {/* SECTION 2: Course Modules & Headings */}
-              <div className="space-y-3 pt-3 border-t border-gray-100">
+              <div className="space-y-3 pt-3 border-t border-line-soft">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-[#173563] uppercase tracking-wide flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide flex items-center gap-1.5">
                     <FolderTree className="w-4 h-4" /> 2. Course Modules &amp; Headings
                   </h4>
                   <button
                     type="button"
                     onClick={addModuleHeading}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                    className="text-xs font-semibold text-brand hover:text-navy flex items-center gap-1 transition"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Module
                   </button>
@@ -891,7 +1025,7 @@ const CourseManagementPage = () => {
                 <div className="space-y-2">
                   {moduleHeadings.map((heading, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <span className="text-gray-400 font-semibold text-[11px] w-6 text-right">
+                      <span className="text-ink-faint font-semibold text-[11px] w-6 text-right">
                         {idx + 1}.
                       </span>
                       <input
@@ -899,13 +1033,13 @@ const CourseManagementPage = () => {
                         value={heading}
                         placeholder={`e.g. Module ${idx + 1}: Topic Title`}
                         onChange={(e) => updateModuleHeading(idx, e.target.value)}
-                        className="flex-1 p-2 border rounded-lg text-xs"
+                        className="admin-input flex-1 h-9 text-xs"
                       />
                       {moduleHeadings.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeModuleHeading(idx)}
-                          className="p-1.5 text-gray-400 hover:text-red-500"
+                          className="p-1.5 text-ink-faint hover:text-danger transition"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -916,20 +1050,20 @@ const CourseManagementPage = () => {
               </div>
 
               {/* SECTION 3: Dedicated Integrated Course Materials (PDFs) */}
-              <div className="space-y-4 pt-4 border-t border-gray-200 bg-slate-50/70 p-4 rounded-2xl border border-slate-200">
+              <div className="space-y-4 pt-4 border-t border-line bg-canvas p-4 rounded-lg border border-line">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <h4 className="text-sm font-bold text-[#173563] uppercase tracking-wide flex items-center gap-1.5">
-                      <FileText className="w-4 h-4 text-indigo-600" />
+                    <h4 className="text-xs font-bold text-navy uppercase tracking-wide flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-brand" />
                       3. Course Materials &amp; Documents (PDFs)
                     </h4>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-ink-soft">
                       Upload study sheets, lecture notes, and PDFs. These are automatically attached to this course and accessible only to approved students during their 3-month access.
                     </p>
                   </div>
 
                   {/* Upload button */}
-                  <label className="inline-flex items-center gap-1.5 bg-[#173563] hover:bg-[#102747] text-white px-3 py-1.5 rounded-lg cursor-pointer font-semibold shadow-xs shrink-0">
+                  <label className="inline-flex items-center gap-1.5 bg-navy hover:bg-navy-deep text-white px-3 py-1.5 rounded-md cursor-pointer font-semibold shadow-sm shrink-0 transition">
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload PDFs</span>
                     <input
@@ -945,19 +1079,19 @@ const CourseManagementPage = () => {
                 {/* List of Existing Saved PDFs (when editing) */}
                 {editingCourse && existingMaterials.length > 0 && (
                   <div className="space-y-2 pt-2">
-                    <p className="text-[11px] font-bold text-gray-700 uppercase">
+                    <p className="text-[11px] font-bold text-ink-soft uppercase">
                       Existing Uploaded Materials ({existingMaterials.length})
                     </p>
-                    <div className="divide-y divide-gray-200 border border-gray-200 rounded-xl bg-white overflow-hidden">
+                    <div className="divide-y divide-line border border-line rounded-lg bg-surface overflow-hidden">
                       {existingMaterials.map((mat) => (
-                        <div key={mat._id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition">
+                        <div key={mat._id} className="p-3 flex items-center justify-between gap-3 hover:bg-canvas/60 transition">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="p-1.5 rounded-md bg-red-50 text-red-600 border border-red-200 shrink-0">
+                            <div className="p-1.5 rounded-md bg-danger-soft text-danger border border-danger/20 shrink-0">
                               <FileText className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-semibold text-gray-900 truncate">{mat.title}</p>
-                              <div className="text-[10px] text-gray-400 flex items-center gap-2">
+                              <p className="font-semibold text-ink truncate">{mat.title}</p>
+                              <div className="text-[10px] text-ink-faint flex items-center gap-2">
                                 <span>{mat.fileName}</span>
                                 <span>•</span>
                                 <span>{formatFileSize(mat.fileSize)}</span>
@@ -972,7 +1106,7 @@ const CourseManagementPage = () => {
                               type="button"
                               onClick={() => handleMaterialAction(mat, true)}
                               disabled={busyMaterialId === mat._id}
-                              className="p-1.5 text-gray-500 hover:text-indigo-600 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                              className="p-1.5 text-ink-faint hover:text-brand rounded-md hover:bg-brand-soft disabled:opacity-50 transition"
                               title="Preview PDF"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -981,7 +1115,7 @@ const CourseManagementPage = () => {
                               type="button"
                               onClick={() => handleMaterialAction(mat, false)}
                               disabled={busyMaterialId === mat._id}
-                              className="p-1.5 text-gray-500 hover:text-indigo-600 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                              className="p-1.5 text-ink-faint hover:text-brand rounded-md hover:bg-brand-soft disabled:opacity-50 transition"
                               title="Download PDF"
                             >
                               <Download className="w-3.5 h-3.5" />
@@ -992,7 +1126,7 @@ const CourseManagementPage = () => {
                                 setReplacingMaterialId(mat._id);
                                 setReplacementFile(null);
                               }}
-                              className="p-1.5 text-gray-500 hover:text-amber-600 rounded-md hover:bg-amber-50"
+                              className="p-1.5 text-ink-faint hover:text-warning rounded-md hover:bg-warning-soft transition"
                               title="Replace PDF File"
                             >
                               <RefreshCw className="w-3.5 h-3.5" />
@@ -1000,7 +1134,7 @@ const CourseManagementPage = () => {
                             <button
                               type="button"
                               onClick={() => handleDeleteExistingMaterial(mat._id, mat.title)}
-                              className="p-1.5 text-gray-500 hover:text-red-600 rounded-md hover:bg-red-50"
+                              className="p-1.5 text-ink-faint hover:text-danger rounded-md hover:bg-danger-soft transition"
                               title="Delete Material"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1015,28 +1149,28 @@ const CourseManagementPage = () => {
                 {/* Staged New PDFs to be saved */}
                 {pendingNewPdfs.length > 0 && (
                   <div className="space-y-2 pt-2">
-                    <p className="text-[11px] font-bold text-indigo-700 uppercase">
+                    <p className="text-[11px] font-bold text-navy uppercase">
                       New PDFs Ready to Save ({pendingNewPdfs.length})
                     </p>
                     <div className="space-y-2">
                       {pendingNewPdfs.map((item) => (
                         <div
                           key={item.id}
-                          className="p-3 bg-white border border-indigo-200 rounded-xl space-y-2 shadow-xs"
+                          className="p-3 bg-surface border border-brand/20 rounded-lg space-y-2 shadow-sm"
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="p-1 bg-indigo-50 text-indigo-600 rounded-sm">
+                              <span className="p-1 bg-brand-soft text-brand rounded-sm">
                                 <FileText className="w-3.5 h-3.5" />
                               </span>
-                              <span className="font-semibold text-gray-900 truncate">
+                              <span className="font-semibold text-ink truncate">
                                 {item.file.name} ({formatFileSize(item.file.size)})
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => removePendingPdf(item.id)}
-                              className="text-gray-400 hover:text-red-500 p-1"
+                              className="text-ink-faint hover:text-danger p-1 transition"
                               title="Remove file"
                             >
                               <X className="w-4 h-4" />
@@ -1050,19 +1184,19 @@ const CourseManagementPage = () => {
                               placeholder="Document Title *"
                               value={item.title}
                               onChange={(e) => updatePendingPdf(item.id, 'title', e.target.value)}
-                              className="p-1.5 border rounded-lg text-xs"
+                              className="admin-input h-8 text-xs"
                             />
                             <input
                               type="text"
                               placeholder="Short Description (Optional)"
                               value={item.description}
                               onChange={(e) => updatePendingPdf(item.id, 'description', e.target.value)}
-                              className="p-1.5 border rounded-lg text-xs"
+                              className="admin-input h-8 text-xs"
                             />
                             <select
                               value={item.moduleTag}
                               onChange={(e) => updatePendingPdf(item.id, 'moduleTag', e.target.value)}
-                              className="p-1.5 border rounded-lg text-xs bg-white"
+                              className="admin-input h-8 text-xs cursor-pointer"
                               title="Module this document belongs to"
                             >
                               <option value="">No module</option>
@@ -1081,29 +1215,48 @@ const CourseManagementPage = () => {
                 )}
 
                 {existingMaterials.length === 0 && pendingNewPdfs.length === 0 && (
-                  <div className="text-center py-6 border-2 border-dashed border-gray-300 rounded-xl space-y-1">
-                    <FileText className="w-8 h-8 text-gray-300 mx-auto" />
-                    <p className="text-xs text-gray-500 font-medium">No PDFs attached to this course yet</p>
-                    <p className="text-[10px] text-gray-400">
+                  <div className="text-center py-6 border-2 border-dashed border-line rounded-lg space-y-1">
+                    <FileText className="w-8 h-8 text-ink-faint mx-auto" />
+                    <p className="text-xs text-ink-soft font-medium">No PDFs attached to this course yet</p>
+                    <p className="text-[10px] text-ink-faint">
                       Click the "Upload PDFs" button above to attach notes, reference sheets, or slides.
                     </p>
                   </div>
                 )}
               </div>
 
+              {/* SECTION 4: Course Reviews & Testimonials */}
+              {editingCourse ? (
+                <CourseReviewsSection
+                  courseId={editingCourse._id}
+                  courseTitle={editingCourse.title}
+                  notify={notify}
+                  courses={courses}
+                />
+              ) : (
+                <div className="p-4 bg-canvas border border-line rounded-lg text-center space-y-1">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wide">
+                    4. Course Reviews &amp; Testimonials
+                  </h4>
+                  <p className="text-xs text-ink-soft">
+                    Save this new course first to begin attaching student video stories and written testimonials directly to it.
+                  </p>
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-line">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 border rounded-xl text-gray-600 hover:bg-gray-50 text-center font-semibold"
+                  className="w-full sm:w-auto px-4 py-2 sm:py-2 border border-line rounded-md bg-surface text-xs font-semibold text-ink hover:bg-canvas text-center transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingCourse}
-                  className="w-full sm:w-auto px-5 py-2.5 sm:py-2 bg-[#173563] hover:bg-[#102747] text-white font-bold rounded-xl text-center shadow-xs flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-5 py-2 sm:py-2 bg-navy hover:bg-navy-deep text-white font-semibold rounded-md text-xs text-center shadow-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
                 >
                   {savingCourse ? (
                     <>
@@ -1125,23 +1278,23 @@ const CourseManagementPage = () => {
 
       {/* Modal: Replace PDF File */}
       {replacingMaterialId && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-gray-100">
+        <div className="fixed inset-0 z-50 bg-navy-deep/50 admin-overlay-in flex items-center justify-center p-4">
+          <div className="bg-surface rounded-lg max-w-md w-full p-5 space-y-4 shadow-overlay border border-line admin-modal-in">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-amber-600" />
+              <h3 className="text-base font-bold text-ink flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 text-warning" />
                 Replace Course PDF File
               </h3>
               <button
                 type="button"
                 onClick={() => setReplacingMaterialId(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-ink-faint hover:text-ink-soft transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-ink-soft">
               Select a new PDF to replace the existing document. The document title and enrollment access permissions will be preserved.
             </p>
 
@@ -1151,21 +1304,21 @@ const CourseManagementPage = () => {
                 required
                 accept=".pdf,.doc,.docx,.txt,.zip"
                 onChange={(e) => setReplacementFile(e.target.files[0])}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                className="w-full text-xs text-ink-soft file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-navy file:text-white hover:file:bg-navy-deep cursor-pointer"
               />
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setReplacingMaterialId(null)}
-                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-canvas rounded-md transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isReplacing || !replacementFile}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-warning hover:bg-[#b45309] text-white text-xs font-semibold rounded-md shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition"
                 >
                   {isReplacing ? 'Uploading...' : 'Confirm Replace'}
                 </button>

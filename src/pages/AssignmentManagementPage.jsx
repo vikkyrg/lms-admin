@@ -220,55 +220,55 @@ const AssignmentManagementPage = () => {
     return (
       <div className="space-y-4 max-w-4xl mx-auto">
         <div className="flex items-center justify-between gap-3">
-          <button onClick={() => setView('list')} className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-gray-900"><ArrowLeft className="h-4 w-4" /> Back to assignments</button>
+          <button onClick={() => setView('list')} className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-soft hover:text-ink"><ArrowLeft className="h-4 w-4" /> Back to assignments</button>
           <div className="flex gap-2">
-            <button onClick={() => save(false)} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-300 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"><Save className="h-4 w-4" /> Save draft</button>
-            <button onClick={() => save(true)} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50"><CloudUpload className="h-4 w-4" /> {saving ? 'Saving...' : 'Publish'}</button>
+            <button onClick={() => save(false)} disabled={saving} className="inline-flex items-center gap-1.5 rounded-md border border-brand/20 bg-brand-soft px-3 py-2 text-xs font-bold text-brand hover:bg-line-soft disabled:opacity-50"><Save className="h-4 w-4" /> Save draft</button>
+            <button onClick={() => save(true)} disabled={saving} className="inline-flex items-center gap-1.5 rounded-md bg-navy px-3 py-2 text-xs font-bold text-white hover:bg-navy-deep disabled:opacity-50"><CloudUpload className="h-4 w-4" /> {saving ? 'Saving...' : 'Publish'}</button>
           </div>
         </div>
 
         {errors.length > 0 && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 space-y-1">
+          <div className="rounded-lg border border-danger/25 bg-danger-soft p-3 text-xs text-danger space-y-1">
             <p className="font-bold">Please fix the following:</p>
             <ul className="list-disc pl-4">{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4 text-sm">
+        <div className="bg-surface rounded-lg border border-line p-4 space-y-4 text-sm shadow-card">
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Assignment title</label>
-            <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2.5 text-sm" placeholder="e.g. Build a CI/CD pipeline project" />
+            <label className="admin-label">Assignment title</label>
+            <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="admin-input text-sm" placeholder="e.g. Build a CI/CD pipeline project" />
           </div>
           <div className="flex items-center gap-4">
-            <label className="inline-flex items-center gap-2 text-xs font-semibold text-gray-700">
-              <input type="checkbox" checked={form.isProject} onChange={(e) => setForm({ ...form, isProject: e.target.checked })} className="h-4 w-4 accent-indigo-600" />
+            <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink">
+              <input type="checkbox" checked={form.isProject} onChange={(e) => setForm({ ...form, isProject: e.target.checked })} className="h-4 w-4 accent-brand" />
               This is a real-world project
             </label>
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Description</label>
-            <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2.5 text-xs" />
+            <label className="admin-label">Description</label>
+            <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="admin-input text-xs" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Instructions</label>
-            <textarea rows={4} value={form.instructions} onChange={(e) => setForm({ ...form, instructions: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2.5 text-xs" placeholder="Step-by-step what the student must do" />
+            <label className="admin-label">Instructions</label>
+            <textarea rows={4} value={form.instructions} onChange={(e) => setForm({ ...form, instructions: e.target.value })} className="admin-input text-xs" placeholder="Step-by-step what the student must do" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Learning objectives (one per line)</label>
-            <textarea rows={3} value={form.learningObjectivesText} onChange={(e) => setForm({ ...form, learningObjectivesText: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2.5 text-xs" placeholder={'Deploy a containerized app\nWrite automated tests'} />
+            <label className="admin-label">Learning objectives (one per line)</label>
+            <textarea rows={3} value={form.learningObjectivesText} onChange={(e) => setForm({ ...form, learningObjectivesText: e.target.value })} className="admin-input text-xs" placeholder={'Deploy a containerized app\nWrite automated tests'} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Module</label>
-              <select value={form.moduleId} onChange={(e) => setForm({ ...form, moduleId: e.target.value, lessonId: '' })} className="w-full rounded-xl border border-gray-300 p-2 text-xs bg-gray-50">
+              <label className="admin-label">Module</label>
+              <select value={form.moduleId} onChange={(e) => setForm({ ...form, moduleId: e.target.value, lessonId: '' })} className="w-full rounded-lg border border-line p-2 text-xs bg-canvas">
                 <option value="">Whole course</option>
                 {modules.map((m) => <option key={m._id} value={m._id}>{m.title}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Lesson (optional)</label>
-              <select value={form.lessonId} onChange={(e) => setForm({ ...form, lessonId: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2 text-xs bg-gray-50" disabled={!form.moduleId}>
+              <label className="admin-label">Lesson (optional)</label>
+              <select value={form.lessonId} onChange={(e) => setForm({ ...form, lessonId: e.target.value })} className="w-full rounded-lg border border-line p-2 text-xs bg-canvas" disabled={!form.moduleId}>
                 <option value="">Whole module</option>
                 {lessons.filter((l) => !form.moduleId || l.moduleId === form.moduleId).map((l) => <option key={l._id} value={l._id}>{l.title}</option>)}
               </select>
@@ -276,10 +276,10 @@ const AssignmentManagementPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1.5">Submission types (students may use any checked option)</label>
+            <label className="admin-label">Submission types (students may use any checked option)</label>
             <div className="flex flex-wrap gap-2">
               {SUBMISSION_TYPES.map((t) => (
-                <button key={t.value} type="button" onClick={() => toggleInArray('submissionTypes', t.value)} className={`rounded-xl border px-3 py-1.5 text-xs font-semibold ${form.submissionTypes.includes(t.value) ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 bg-white text-gray-600'}`}>
+                <button key={t.value} type="button" onClick={() => toggleInArray('submissionTypes', t.value)} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${form.submissionTypes.includes(t.value) ? 'border-brand bg-brand-soft text-brand' : 'border-line bg-surface text-ink-soft'}`}>
                   {t.label}
                 </button>
               ))}
@@ -288,10 +288,10 @@ const AssignmentManagementPage = () => {
 
           {needsFile && (
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Allowed file types</label>
+              <label className="admin-label">Allowed file types</label>
               <div className="flex flex-wrap gap-2">
                 {FILE_TYPE_OPTIONS.map((ext) => (
-                  <button key={ext} type="button" onClick={() => toggleInArray('allowedFileTypes', ext)} className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${form.allowedFileTypes.includes(ext) ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-600'}`}>{ext}</button>
+                  <button key={ext} type="button" onClick={() => toggleInArray('allowedFileTypes', ext)} className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${form.allowedFileTypes.includes(ext) ? 'border-brand bg-brand-soft text-brand' : 'border-line text-ink-soft'}`}>{ext}</button>
                 ))}
               </div>
             </div>
@@ -299,63 +299,63 @@ const AssignmentManagementPage = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Due date</label>
-              <input type="datetime-local" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="w-full rounded-lg border border-gray-300 p-1.5 text-[11px]" />
+              <label className="admin-label">Due date</label>
+              <input type="datetime-local" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="admin-input h-8 text-[11px]" />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Total marks</label>
-              <input type="number" min="1" value={form.totalMarks} onChange={(e) => setForm({ ...form, totalMarks: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2 text-xs" />
+              <label className="admin-label">Total marks</label>
+              <input type="number" min="1" value={form.totalMarks} onChange={(e) => setForm({ ...form, totalMarks: e.target.value })} className="admin-input text-xs" />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Passing marks</label>
-              <input type="number" min="0" value={form.passingMarks} onChange={(e) => setForm({ ...form, passingMarks: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2 text-xs" />
+              <label className="admin-label">Passing marks</label>
+              <input type="number" min="0" value={form.passingMarks} onChange={(e) => setForm({ ...form, passingMarks: e.target.value })} className="admin-input text-xs" />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Max file (MB)</label>
-              <input type="number" min="1" max="50" value={form.maxFileSizeMb} onChange={(e) => setForm({ ...form, maxFileSizeMb: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2 text-xs" disabled={!needsFile} />
+              <label className="admin-label">Max file (MB)</label>
+              <input type="number" min="1" max="50" value={form.maxFileSizeMb} onChange={(e) => setForm({ ...form, maxFileSizeMb: e.target.value })} className="admin-input text-xs" disabled={!needsFile} />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Rubric / grading criteria</label>
-            <textarea rows={3} value={form.rubric} onChange={(e) => setForm({ ...form, rubric: e.target.value })} className="w-full rounded-xl border border-gray-300 p-2.5 text-xs" placeholder="How marks are awarded..." />
+            <label className="admin-label">Rubric / grading criteria</label>
+            <textarea rows={3} value={form.rubric} onChange={(e) => setForm({ ...form, rubric: e.target.value })} className="admin-input text-xs" placeholder="How marks are awarded..." />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Resubmission policy</label>
-              <select value={form.allowResubmission} onChange={(e) => setForm({ ...form, allowResubmission: e.target.value })} className="w-full rounded-lg border border-gray-300 p-2 text-xs bg-gray-50">
+              <label className="admin-label">Resubmission policy</label>
+              <select value={form.allowResubmission} onChange={(e) => setForm({ ...form, allowResubmission: e.target.value })} className="admin-input text-xs cursor-pointer">
                 <option value="never">Never</option>
                 <option value="before-grading">Allowed until graded</option>
                 <option value="after-revision">Only after being returned</option>
               </select>
             </div>
             <div className="flex items-end pb-1">
-              <label className="inline-flex items-center gap-2 text-xs font-semibold text-gray-700">
-                <input type="checkbox" checked={form.allowLateSubmission} onChange={(e) => setForm({ ...form, allowLateSubmission: e.target.checked })} className="h-4 w-4 accent-indigo-600" />
+              <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink">
+                <input type="checkbox" checked={form.allowLateSubmission} onChange={(e) => setForm({ ...form, allowLateSubmission: e.target.checked })} className="h-4 w-4 accent-brand" />
                 Allow late submission (marked as Late)
               </label>
             </div>
           </div>
 
           {/* Files */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line">
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Reference PDF / document (optional)</label>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50">
+              <label className="admin-label">Reference PDF / document (optional)</label>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-line px-3 py-2 text-xs text-ink-soft hover:bg-canvas">
                 <Upload className="h-4 w-4" /> {referenceFile ? referenceFile.name : (existingReference ? 'Replace file' : 'Choose file')}
                 <input type="file" className="hidden" accept=".pdf,.doc,.docx,.txt,.zip" onChange={(e) => setReferenceFile(e.target.files?.[0] || null)} />
               </label>
-              {existingReference && !referenceFile && <p className="text-[10px] text-emerald-600 mt-1 flex items-center gap-1"><Paperclip className="h-3 w-3" /> {existingReference.fileName}</p>}
+              {existingReference && !referenceFile && <p className="text-[10px] text-success mt-1 flex items-center gap-1"><Paperclip className="h-3 w-3" /> {existingReference.fileName}</p>}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">Starter files (optional, multiple)</label>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50">
+              <label className="admin-label">Starter files (optional, multiple)</label>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-line px-3 py-2 text-xs text-ink-soft hover:bg-canvas">
                 <Upload className="h-4 w-4" /> Add starter files
                 <input type="file" multiple className="hidden" onChange={(e) => setStarterFiles(Array.from(e.target.files || []))} />
               </label>
-              {starterFiles.length > 0 && <p className="text-[10px] text-gray-500 mt-1">{starterFiles.length} file(s) selected</p>}
-              {existingStarters.length > 0 && starterFiles.length === 0 && <p className="text-[10px] text-gray-500 mt-1">{existingStarters.length} existing starter file(s)</p>}
+              {starterFiles.length > 0 && <p className="text-[10px] text-ink-soft mt-1">{starterFiles.length} file(s) selected</p>}
+              {existingStarters.length > 0 && starterFiles.length === 0 && <p className="text-[10px] text-ink-soft mt-1">{existingStarters.length} existing starter file(s)</p>}
             </div>
           </div>
         </div>
@@ -367,47 +367,47 @@ const AssignmentManagementPage = () => {
     <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">Assignment Management</h1>
-          <p className="text-xs text-gray-500 mt-1">Create assignments and real-world projects tied to courses, modules and lessons.</p>
+          <h1 className="text-lg font-bold text-ink">Assignment Management</h1>
+          <p className="text-xs text-ink-soft mt-1">Create assignments and real-world projects tied to courses, modules and lessons.</p>
         </div>
-        <button onClick={() => openEditor(null)} className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700"><Plus className="h-4 w-4" /> New assignment</button>
+        <button onClick={() => openEditor(null)} className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-md bg-navy px-4 py-2.5 text-xs font-bold text-white hover:bg-navy-deep"><Plus className="h-4 w-4" /> New assignment</button>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col sm:flex-row sm:items-center gap-3">
-        <label className="text-xs font-bold text-gray-700 shrink-0">Select course:</label>
-        <select value={selectedCourseId} onChange={(e) => setSelectedCourseId(e.target.value)} className="w-full sm:flex-1 sm:max-w-md bg-gray-50 border border-gray-300 text-xs rounded-xl p-2 font-semibold text-gray-800">
+      <div className="bg-surface p-4 rounded-lg border border-line flex flex-col sm:flex-row sm:items-center gap-3">
+        <label className="text-xs font-bold text-ink shrink-0">Select course:</label>
+        <select value={selectedCourseId} onChange={(e) => setSelectedCourseId(e.target.value)} className="admin-input w-full sm:flex-1 sm:max-w-md text-xs font-semibold cursor-pointer">
           {courses.map((c) => <option key={c._id} value={c._id}>{c.title}</option>)}
         </select>
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-gray-400 text-sm">Loading assignments...</div>
+        <div className="text-center py-10 text-ink-faint text-sm">Loading assignments...</div>
       ) : assignments.length === 0 ? (
-        <div className="bg-white p-10 rounded-2xl border text-center text-gray-500 text-sm">
-          <ListChecks className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+        <div className="bg-surface p-10 rounded-lg border text-center text-ink-soft text-sm">
+          <ListChecks className="h-8 w-8 mx-auto text-line mb-2" />
           No assignments for this course yet. Click <span className="font-bold">New assignment</span> to add one.
         </div>
       ) : (
         <div className="space-y-3">
           {assignments.map((a) => (
-            <div key={a._id} className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-xs">
+            <div key={a._id} className="bg-surface rounded-lg border border-line p-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-card">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-sm text-gray-900">{a.title}</h3>
-                  {a.isProject && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Project</span>}
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${a.published ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>{a.published ? 'Published' : 'Draft'}</span>
+                  <h3 className="font-bold text-sm text-ink">{a.title}</h3>
+                  {a.isProject && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-soft text-brand">Project</span>}
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${a.published ? 'bg-success-soft text-[#15803d]' : 'bg-line-soft text-ink-soft'}`}>{a.published ? 'Published' : 'Draft'}</span>
                 </div>
-                <p className="text-[11px] text-gray-500 mt-0.5">
+                <p className="text-[11px] text-ink-soft mt-0.5">
                   {a.moduleTitle || 'Whole course'}{a.lessonTitle ? ` · ${a.lessonTitle}` : ''} · {(a.submissionTypes || []).join(', ')} · {a.totalMarks} marks · Due {a.dueDate ? new Date(a.dueDate).toLocaleDateString() : '—'}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">{a.submissionCount || 0} submission(s) · {a.pendingGradingCount || 0} awaiting grading</p>
+                <p className="text-[11px] text-ink-faint mt-0.5">{a.submissionCount || 0} submission(s) · {a.pendingGradingCount || 0} awaiting grading</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button onClick={() => openEditor(a)} className="rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold px-3 py-1.5 text-xs">Edit</button>
-                <button onClick={() => quickToggle(a)} className={`rounded-lg font-bold px-3 py-1.5 text-xs inline-flex items-center gap-1 ${a.published ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}>
+                <button onClick={() => openEditor(a)} className="rounded-lg bg-brand-soft text-brand hover:bg-line-soft font-bold px-3 py-1.5 text-xs">Edit</button>
+                <button onClick={() => quickToggle(a)} className={`rounded-lg font-bold px-3 py-1.5 text-xs inline-flex items-center gap-1 ${a.published ? 'bg-warning-soft text-[#92400e] hover:bg-warning/20' : 'bg-success-soft text-[#15803d] hover:bg-success/20'}`}>
                   {a.published ? <><CloudOff className="h-3.5 w-3.5" /> Unpublish</> : <><CheckCircle2 className="h-3.5 w-3.5" /> Publish</>}
                 </button>
-                <button onClick={() => remove(a)} className="rounded-lg p-1.5 text-gray-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => remove(a)} className="rounded-lg p-1.5 text-ink-faint hover:text-danger"><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           ))}

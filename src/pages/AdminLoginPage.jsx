@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 const AdminLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -28,49 +29,55 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl text-slate-100">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-indigo-600/30">
-            <Shield className="h-6 w-6" />
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
+      <div className="max-w-[400px] w-full bg-surface border border-line rounded-lg p-7 space-y-6 shadow-card">
+        <div className="text-center space-y-3">
+          <div className="inline-flex bg-white border border-line px-4 py-2 rounded-md mx-auto">
+            <img
+              src={logoImg}
+              alt="AutoOps School"
+              className="h-10 w-auto object-contain"
+            />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">AutoOps School Admin</h1>
-          <p className="text-xs text-slate-400">Sign in to administer courses, students, and submissions</p>
+          <h1 className="text-lg font-bold tracking-tight text-navy">AutoOps School Admin</h1>
+          <p className="text-xs text-ink-soft">Sign in to administer courses, students, and submissions</p>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-950/60 border border-red-800 text-red-300 text-xs rounded-xl font-medium">
+          <div className="px-3.5 py-2.5 bg-danger-soft border border-danger/20 text-danger text-xs rounded-md font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Administrative Email</label>
+            <label className="admin-label" htmlFor="admin-email">Administrative Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-faint" />
               <input
+                id="admin-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@lms.com"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-800 border border-slate-700 text-white rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="admin-input pl-9"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Security Password</label>
+            <label className="admin-label" htmlFor="admin-password">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-faint" />
               <input
+                id="admin-password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-800 border border-slate-700 text-white rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="admin-input pl-9"
               />
             </div>
           </div>
@@ -78,22 +85,18 @@ const AdminLoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            className="w-full py-2.5 bg-navy hover:bg-navy-deep text-white font-semibold rounded-md shadow-sm transition flex items-center justify-center gap-2 text-[13px] disabled:opacity-50"
           >
-            {loading ? 'Validating...' : 'Access Dashboard'}
+            {loading ? 'Validating…' : 'Access Dashboard'}
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
-        <div className="p-4 bg-slate-800/80 border border-slate-700 rounded-2xl text-xs text-slate-300 space-y-2">
-          <p className="font-bold text-indigo-400">Available Demo Credentials:</p>
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <div>
-              <p className="font-semibold text-white">Administrator:</p>
-              <p>admin@lms.com</p>
-              <p className="text-slate-400">admin123</p>
-            </div>
-          </div>
+        <div className="px-4 py-3 bg-canvas border border-line rounded-md text-xs text-ink-soft space-y-1.5">
+          <p className="font-semibold text-ink">Available Demo Credentials:</p>
+          <p className="text-[11px] leading-relaxed">
+            Administrator: <span className="font-medium text-ink">admin@lms.com</span> · <span className="font-medium text-ink">admin123</span>
+          </p>
         </div>
       </div>
     </div>

@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { CreditCard, RotateCcw, AlertCircle, CheckCircle } from 'lucide-react';
+import { CreditCard, RotateCcw } from 'lucide-react';
+import { DataTable, SearchBar, FilterDropdown, StatusBadge, Modal, ActionMenu, btn } from '../components/ui';
+
+const formatMoney = (value) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value || 0);
 
 const AdminPaymentsPage = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [refundModal, setRefundModal] = useState({ open: false, payment: null });
   const [refundReason, setRefundReason] = useState('');
   const [refundAmount, setRefundAmount] = useState('');
@@ -17,11 +24,12 @@ const AdminPaymentsPage = () => {
 
   const fetchPayments = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.get('/admin/payments');
       setPayments(res.data.payments || []);
     } catch (err) {
-      setNotification({ type: 'error', message: err.response?.data?.message || 'Failed to load payments' });
+      setError(err.response?.data?.message || 'Failed to load payments.');
     } finally {
       setLoading(false);
     }
@@ -36,161 +44,218 @@ const AdminPaymentsPage = () => {
         amount: refundAmount ? Number(refundAmount) : undefined,
         reason: refundReason
       });
-      setNotification({ type: 'success', message: 'Refund initiated successfully!' });
+      setNotification({ type: 'success', message: 'Refund initiated successfully.' });
       setRefundModal({ open: false, payment: null });
       fetchPayments();
     } catch (err) {
-      setNotification({ type: 'error', message: err.response?.data?.message || 'Refund processing failed' });
+      setNotification({ type: 'error', message: err.response?.data?.message || 'Refund processing failed.' });
     } finally {
       setSubmitting(false);
     }
   };
 
+  const visiblePayments = payments.filter((p) => {
+    if (statusFilter && p.status !== statusFilter) return false;
+    const term = search.trim().toLowerCase();
+    if (!term) return true;
+    return [p.student?.name, p.student?.email, p.course?.title, p.orderId, p.paymentId]
+      .some((f) => String(f || '').toLowerCase().includes(term));
+  });
+
+  const totalCollected = payments
+    .filter((p) => p.status === 'completed' || p.status === 'partially_refunded')
+    .reduce((sum, p) => sum + (p.amount || 0) - (p.refundAmount || 0), 0);
+
+  const columns = [
+    {
+      key: 'student',
+      header: 'Student',
+      render: (p) => (
+        <div className="min-w-0">
+          <p className="font-semibold text-ink truncate">{p.student?.name || 'Unknown'}</p>
+          <p className="text-xs text-ink-soft truncate">{p.student?.email || '—'}</p>
+        </div>
+      )
+    },
+    {
+      key: 'course',
+      header: 'Course',
+      className: 'max-w-[220px]',
+      render: (p) => <span className="text-ink font-medium truncate block">{p.course?.title || 'Unknown Course'}</span>
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      className: 'w-[130px]',
+      render: (p) => (
+        <div>
+          <p className="font-semibold text-ink tabular-nums whitespace-nowrap">{formatMoney(p.amount)}</p>
+          {p.refundAmount > 0 && (
+            <p className="text-[10px] text-danger font-medium">Refunded: {formatMoney(p.refundAmount)}</p>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'ids',
+      header: 'Order / Payment ID',
+      render: (p) => (
+        <div className="font-mono text-[11px] text-ink-soft space-y-0.5">
+          <div className="truncate max-w-[180px]" title={p.orderId || ''}>Ord: {p.orderId || '—'}</div>
+          {p.paymentId && <div className="truncate max-w-[180px] text-ink-faint" title={p.paymentId}>Pay: {p.paymentId}</div>}
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      className: 'w-[130px]',
+      render: (p) => <StatusBadge value={p.status} />
+    },
+    {
+      key: 'date',
+      header: 'Date',
+      className: 'w-[120px]',
+      render: (p) => <span className="text-ink-soft whitespace-nowrap text-xs">{new Date(p.createdAt).toLocaleDateString('en-IN')}</span>
+    },
+    {
+      key: 'actions',
+      header: '',
+      className: 'w-[52px]',
+      render: (p) =>
+        p.status === 'completed' ? (
+          <ActionMenu
+            items={[
+              {
+                label: 'Process refund…',
+                icon: RotateCcw,
+                tone: 'danger',
+                onClick: () => {
+                  setRefundModal({ open: true, payment: p });
+                  setRefundAmount(p.amount - (p.refundAmount || 0));
+                  setRefundReason('');
+                }
+              }
+            ]}
+            label="Payment actions"
+          />
+        ) : null
+    }
+  ];
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">Payment & Refund Management</h1>
-        <p className="text-xs text-gray-500 mt-1">Review student transaction logs, order status, and process authorized refunds</p>
+    <div className="space-y-4 max-w-[1400px] mx-auto">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-brand" />
+            Payments &amp; Refunds
+          </h1>
+          <p className="text-xs text-ink-soft mt-1">Student transaction logs, gateway order status, and authorized refunds</p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-ink-soft shadow-card">
+          Net collected <span className="font-bold text-navy tabular-nums">{formatMoney(totalCollected)}</span>
+        </span>
       </div>
 
       {notification && (
-        <div className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between ${
-          notification.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
+        <div className={`px-4 py-2.5 rounded-md text-xs font-semibold flex items-center justify-between border ${
+          notification.type === 'error' ? 'bg-danger-soft text-danger border-danger/20' : 'bg-success-soft text-[#15803d] border-success/20'
         }`}>
           <span>{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="underline ml-4">Dismiss</button>
+          <button onClick={() => setNotification(null)} className="underline ml-4 cursor-pointer">Dismiss</button>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-gray-600">
-            <thead className="bg-gray-50 text-gray-500 font-semibold uppercase">
-              <tr>
-                <th className="p-4">Student</th>
-                <th className="p-4">Course</th>
-                <th className="p-4">Amount</th>
-                <th className="p-4">Order / Payment ID</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Date</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan="7" className="p-8 text-center text-gray-400">Loading transactions...</td>
-                </tr>
-              ) : payments.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="p-8 text-center text-gray-400">No payment transactions found.</td>
-                </tr>
-              ) : (
-                payments.map((p) => (
-                  <tr key={p._id} className="hover:bg-gray-50">
-                    <td className="p-4">
-                      <p className="font-bold text-gray-900">{p.student?.name || 'Unknown'}</p>
-                      <p className="text-[11px] text-gray-400">{p.student?.email}</p>
-                    </td>
-                    <td className="p-4 font-semibold text-gray-800">{p.course?.title || 'Unknown Course'}</td>
-                    <td className="p-4 font-bold text-gray-900">
-                      ₹{p.amount}
-                      {p.refundAmount > 0 && (
-                        <span className="block text-[10px] text-red-500 font-normal">
-                          Refunded: ₹{p.refundAmount}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 font-mono text-[11px]">
-                      <div>Ord: {p.orderId}</div>
-                      {p.paymentId && <div className="text-gray-400">Pay: {p.paymentId}</div>}
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        p.status === 'completed' ? 'bg-emerald-50 text-emerald-700' :
-                        p.status === 'refunded' ? 'bg-red-50 text-red-700' :
-                        p.status === 'partially_refunded' ? 'bg-amber-50 text-amber-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>
-                    <td className="p-4 text-right">
-                      {p.status === 'completed' && (
-                        <button
-                          onClick={() => {
-                            setRefundModal({ open: true, payment: p });
-                            setRefundAmount(p.amount - (p.refundAmount || 0));
-                            setRefundReason('');
-                          }}
-                          className="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 ml-auto"
-                        >
-                          <RotateCcw className="h-3 w-3" /> Refund
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={visiblePayments}
+        loading={loading}
+        error={error}
+        onRetry={fetchPayments}
+        minWidthClass="min-w-[980px]"
+        empty={{
+          title: 'No payment transactions found',
+          message: search || statusFilter ? 'Try adjusting the search or status filter.' : undefined
+        }}
+        toolbar={
+          <>
+            <SearchBar value={search} onChange={setSearch} placeholder="Search student, course, order ID…" className="w-full max-w-xs" />
+            <FilterDropdown
+              value={statusFilter}
+              onChange={setStatusFilter}
+              label="Payment status"
+              className="w-40 ml-auto"
+              options={[
+                { value: '', label: 'All Statuses' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'initiated', label: 'Initiated' },
+                { value: 'partially_refunded', label: 'Partially Refunded' },
+                { value: 'refunded', label: 'Refunded' },
+                { value: 'failed', label: 'Failed' }
+              ]}
+            />
+          </>
+        }
+      />
 
-      {refundModal.open && refundModal.payment && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4">
-            <h3 className="font-bold text-base text-gray-900">Process Refund</h3>
-            <p className="text-xs text-gray-500">
-              Refunding payment for <span className="font-semibold text-gray-800">{refundModal.payment.course?.title}</span>.
-            </p>
-            <form onSubmit={handleRefund} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Refund Amount (₹)</label>
-                <input
-                  type="number"
-                  required
-                  max={refundModal.payment.amount - (refundModal.payment.refundAmount || 0)}
-                  value={refundAmount}
-                  onChange={(e) => setRefundAmount(e.target.value)}
-                  className="w-full p-2 border rounded-xl"
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Reason for Refund</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={refundReason}
-                  onChange={(e) => setRefundReason(e.target.value)}
-                  placeholder="e.g. Student requested cancellation within guarantee period"
-                  className="w-full p-2 border rounded-xl"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-3 border-t">
-                <button
-                  type="button"
-                  onClick={() => setRefundModal({ open: false, payment: null })}
-                  className="px-4 py-2 border rounded-xl text-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl disabled:opacity-50"
-                >
-                  {submitting ? 'Processing...' : 'Confirm Refund'}
-                </button>
-              </div>
-            </form>
+      {/* Refund modal */}
+      <Modal
+        open={refundModal.open && Boolean(refundModal.payment)}
+        onClose={() => setRefundModal({ open: false, payment: null })}
+        title="Process Refund"
+        description={refundModal.payment ? `${refundModal.payment.course?.title || 'Course'} · ${refundModal.payment.student?.name || 'Student'}` : undefined}
+      >
+        <form onSubmit={handleRefund} className="space-y-4 text-[13px]">
+          <div>
+            <label className="admin-label" htmlFor="refund-amount">Refund Amount (₹)</label>
+            <input
+              id="refund-amount"
+              type="number"
+              required
+              max={refundModal.payment ? refundModal.payment.amount - (refundModal.payment.refundAmount || 0) : undefined}
+              value={refundAmount}
+              onChange={(e) => setRefundAmount(e.target.value)}
+              className="admin-input"
+            />
+            {refundModal.payment ? (
+              <p className="mt-1 text-xs text-ink-faint">
+                Maximum refundable: {formatMoney(refundModal.payment.amount - (refundModal.payment.refundAmount || 0))}
+              </p>
+            ) : null}
           </div>
-        </div>
-      )}
+          <div>
+            <label className="admin-label" htmlFor="refund-reason">Reason for Refund</label>
+            <textarea
+              id="refund-reason"
+              rows={3}
+              required
+              value={refundReason}
+              onChange={(e) => setRefundReason(e.target.value)}
+              placeholder="e.g. Student requested cancellation within guarantee period"
+              className="admin-input"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setRefundModal({ open: false, payment: null })}
+              className={btn('secondary')}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className={btn('danger')}
+            >
+              {submitting ? 'Processing…' : 'Confirm Refund'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
 
 export default AdminPaymentsPage;
-

@@ -1,46 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Search, 
-  Calendar, 
-  UserCheck, 
-  AlertCircle,
-  FileText,
-  DollarSign,
+import {
+  Clock,
+  UserCheck,
   Phone,
   Mail,
-  ShieldCheck,
   Check,
-  X
+  X,
+  Trash2,
+  RotateCcw
 } from 'lucide-react';
 import api from '../services/api';
 import { useFeedback } from '../components/Feedback';
+import { useAdminNotifications } from '../context/AdminNotificationsContext';
 import { courseTypeLabel, formatCoursePrice, isFreeCourse, paymentSummary } from '../utils/courseAccess';
+import {
+  DataTable,
+  SearchBar,
+  StatusBadge,
+  Modal,
+  ActionMenu,
+  btn
+} from '../components/ui';
 
 const studentOf = (enr) => enr?.student || enr?.user || {};
 
-const toneClass = (tone) => {
-  switch (tone) {
-    case 'success':
-      return 'bg-emerald-100 text-emerald-800';
-    case 'warning':
-      return 'bg-amber-100 text-amber-800';
-    case 'danger':
-      return 'bg-rose-100 text-rose-700';
-    default:
-      return 'bg-slate-100 text-slate-600';
-  }
-};
+// Requests tied to a gateway-verified payment, or enrollments that already
+// received course access, must not be deleted (payment/progress history).
+const hasVerifiedPayment = (enr) =>
+  Boolean(enr?.payment) && ['completed', 'refunded', 'partially_refunded'].includes(enr.payment.status);
+const canDeleteEnrollment = (enr) =>
+  ['pending_approval', 'rejected'].includes(enr?.status) && !hasVerifiedPayment(enr);
+
+const STATUS_FILTERS = [
+  { id: 'pending_approval', label: 'Pending Approval' },
+  { id: 'approved', label: 'Approved (Active)' },
+  { id: 'rejected', label: 'Rejected' },
+  { id: 'expired', label: 'Expired' },
+  { id: 'all', label: 'All' }
+];
 
 const EnrollmentsManagementPage = () => {
   const { notify, confirm } = useFeedback();
+  const { markEnrollmentsRead, refresh: refreshNotificationCounts } = useAdminNotifications();
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending_approval');
   const [search, setSearch] = useState('');
-  
+  const [error, setError] = useState(null);
+
   // Rejection modal state
   const [rejectingEnrollment, setRejectingEnrollment] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -49,17 +56,14 @@ const EnrollmentsManagementPage = () => {
   const fetchEnrollments = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await api.get(`/enrollments/admin/list?status=${filter}&limit=100`);
       if (res.data.success) {
         setEnrollments(res.data.enrollments || res.data.data || []);
       }
     } catch (err) {
       console.error(err);
-      notify({
-        type: 'error',
-        title: 'Error loading enrollments',
-        message: err.response?.data?.message || 'Could not fetch enrollments list'
-      });
+      setError(err.response?.data?.message || 'Could not fetch enrollments list.');
     } finally {
       setLoading(false);
     }
@@ -68,6 +72,12 @@ const EnrollmentsManagementPage = () => {
   useEffect(() => {
     fetchEnrollments();
   }, [filter]);
+
+  // Opening the approvals page counts as reviewing all current pending requests,
+  // so clear the sidebar unread badge. This never approves/rejects anyone.
+  useEffect(() => {
+    markEnrollmentsRead();
+  }, [markEnrollmentsRead]);
 
   const handleApprove = async (enrollment) => {
     const ok = await confirm({
@@ -131,6 +141,41 @@ const EnrollmentsManagementPage = () => {
     }
   };
 
+  const handleDelete = async (enrollment) => {
+    const student = studentOf(enrollment);
+    const ok = await confirm({
+      title: 'Delete Enrollment Request?',
+      message: `Are you sure you want to delete this enrollment request for ${student.name || 'this student'} (${enrollment.course?.title || 'this course'})? The student's account will NOT be deleted, and any payment records are preserved. This action cannot be undone.`
+    });
+
+    if (!ok) return;
+
+    try {
+      setProcessingId(enrollment._id);
+      const res = await api.delete(`/enrollments/admin/${enrollment._id}`);
+      if (res.data.success) {
+        notify({
+          type: 'success',
+          title: 'Enrollment Deleted',
+          message: res.data.message || 'Enrollment request deleted. Student account preserved.'
+        });
+        await fetchEnrollments();
+        // Keep the sidebar unread badge in sync (deleted pending requests
+        // must not keep counting as unread notifications).
+        refreshNotificationCounts();
+      }
+    } catch (err) {
+      console.error(err);
+      notify({
+        type: 'error',
+        title: 'Delete Failed',
+        message: err.response?.data?.message || 'Could not delete the enrollment request.'
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const filteredEnrollments = enrollments.filter(e => {
     const term = search.toLowerCase();
     const student = studentOf(e);
@@ -140,340 +185,290 @@ const EnrollmentsManagementPage = () => {
     return studentName.includes(term) || studentEmail.includes(term) || courseTitle.includes(term);
   });
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending_approval':
+  const columns = [
+    {
+      key: 'student',
+      header: 'Student',
+      render: (enr) => {
+        const student = studentOf(enr);
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            <Clock className="w-3.5 h-3.5" /> Pending Approval
-          </span>
-        );
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Approved / Active
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-            <XCircle className="w-3.5 h-3.5" /> Rejected
-          </span>
-        );
-      case 'expired':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300">
-            <Clock className="w-3.5 h-3.5" /> Access Expired
-          </span>
-        );
-      case 'completed':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-            <ShieldCheck className="w-3.5 h-3.5" /> Completed
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-            {status}
-          </span>
-        );
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <UserCheck className="w-7 h-7 text-indigo-600" />
-            Enrollment Approvals &amp; 3-Month Access
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Review free and paid enrollments, check verified payments, approve access for exactly 3 calendar months, or reject applications.
-          </p>
-        </div>
-
-        {/* Status Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          {[
-            { id: 'pending_approval', label: 'Pending Approval' },
-            { id: 'approved', label: 'Approved (Active)' },
-            { id: 'rejected', label: 'Rejected' },
-            { id: 'expired', label: 'Expired' },
-            { id: 'all', label: 'All Enrollments' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                filter === tab.id
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
-        <Search className="w-5 h-5 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Filter by student name, email, or course title..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full text-sm outline-hidden text-slate-800 placeholder-slate-400"
-        />
-        {search && (
-          <button 
-            onClick={() => setSearch('')}
-            className="text-xs text-slate-400 hover:text-slate-600"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* Enrollments Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="inline-block animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mb-3" />
-            <p className="text-sm text-slate-500">Loading enrollment records...</p>
+          <div className="min-w-0">
+            <div className="font-semibold text-ink">{student.name || 'Unknown User'}</div>
+            <div className="text-xs text-ink-soft flex items-center gap-1.5 mt-0.5">
+              <Mail className="w-3 h-3 text-ink-faint shrink-0" />
+              <span className="truncate">{student.email || 'No email'}</span>
+            </div>
+            <div className="text-xs text-ink-soft flex items-center gap-1.5 mt-0.5">
+              <Phone className="w-3 h-3 text-ink-faint shrink-0" />
+              {student.phone || <span className="text-warning italic">No phone entered</span>}
+            </div>
           </div>
-        ) : filteredEnrollments.length === 0 ? (
-          <div className="p-12 text-center space-y-2">
-            <AlertCircle className="w-10 h-10 text-slate-300 mx-auto" />
-            <p className="text-base font-semibold text-slate-700">No enrollments found</p>
-            <p className="text-xs text-slate-500">No records match the current filter "{filter}".</p>
+        );
+      }
+    },
+    {
+      key: 'course',
+      header: 'Course',
+      className: 'max-w-[240px]',
+      render: (enr) => (
+        <div className="min-w-0">
+          <div className="font-medium text-ink truncate">{enr.course?.title || 'Unknown Course'}</div>
+          <div className="text-xs text-ink-soft mt-0.5">
+            Enrolled on {new Date(enr.createdAt).toLocaleDateString('en-IN')}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      render: (enr) => {
+        const free = isFreeCourse(enr.course);
+        return (
+          <div>
+            <StatusBadge value={free ? 'trial' : 'paid'} label={courseTypeLabel(enr.course)} tone={free ? 'success' : 'info'} />
+            <div className="text-[11px] text-ink-soft mt-1">{free ? 'Price on record: ₹0' : formatCoursePrice(enr.course)}</div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'payment',
+      header: 'Payment',
+      render: (enr) => {
+        const payment = paymentSummary(enr);
+        return (
+          <div>
+            <StatusBadge value={payment.label} tone={payment.tone} />
+            {enr.payment ? (
+              <div className="text-[11px] text-ink-faint mt-1 space-y-0.5">
+                <div className="truncate max-w-[180px]" title={enr.payment.orderId || ''}>Order: {enr.payment.orderId || '—'}</div>
+                <div className="truncate max-w-[180px]" title={enr.payment.paymentId || ''}>Payment: {enr.payment.paymentId || 'not captured yet'}</div>
+              </div>
+            ) : (
+              <div className="text-[11px] text-ink-faint mt-1 italic">
+                {isFreeCourse(enr.course) ? 'No order for free enrollments' : 'Awaiting gateway payment'}
+              </div>
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'access',
+      header: 'Access Period',
+      render: (enr) =>
+        enr.accessStartDate && enr.accessExpiryDate ? (
+          <div className="text-xs space-y-0.5">
+            <div className="text-ink-soft">
+              <span className="font-semibold text-ink">Start:</span> {new Date(enr.accessStartDate).toLocaleDateString('en-IN')}
+            </div>
+            <div className="text-ink-soft">
+              <span className="font-semibold text-ink">Expires:</span> {new Date(enr.accessExpiryDate).toLocaleDateString('en-IN')}
+            </div>
+            {enr.status === 'approved' && (
+              <div className="text-success font-semibold text-[11px]">
+                {enr.daysRemaining > 0 ? `${enr.daysRemaining} days remaining` : 'Expiring today'}
+              </div>
+            )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 text-xs uppercase font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="px-5 py-3">Student Details</th>
-                  <th className="px-5 py-3">Course</th>
-                  <th className="px-5 py-3">Course Type</th>
-                  <th className="px-5 py-3">Payment Status</th>
-                  <th className="px-5 py-3">Access Period (3 Mos)</th>
-                  <th className="px-5 py-3">Enrollment Status</th>
-                  <th className="px-5 py-3 text-right">Approval Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredEnrollments.map((enr) => {
-                  const isPending = enr.status === 'pending_approval';
-                  const isProcessing = processingId === enr._id;
-                  const student = studentOf(enr);
-                  const free = isFreeCourse(enr.course);
-                  const payment = paymentSummary(enr);
-                  // A paid course can only be approved once the backend has
-                  // verified the Razorpay payment (server enforces this too).
-                  const paidButUnverified = !free && enr.payment?.status !== 'completed';
+          <span className="text-xs text-ink-faint italic">3 months, from approval date</span>
+        )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (enr) => (
+        <div>
+          <StatusBadge
+            value={enr.status}
+            label={enr.status === 'pending_approval' ? 'Pending' : enr.status === 'approved' ? 'Approved · Active' : undefined}
+            tone={enr.status === 'approved' ? 'success' : undefined}
+          />
+          {enr.status === 'rejected' && enr.rejectionReason && (
+            <p className="text-xs text-danger mt-1 max-w-[220px] italic line-clamp-2" title={enr.rejectionReason}>
+              “{enr.rejectionReason}”
+            </p>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      className: 'w-[120px] text-center shrink-0',
+      render: (enr) => {
+        const isPending = enr.status === 'pending_approval';
+        const isProcessing = processingId === enr._id;
+        const paidButUnverified = !isFreeCourse(enr.course) && enr.payment?.status !== 'completed';
 
-                  return (
-                    <tr key={enr._id} className="hover:bg-slate-50/60 transition">
-                      {/* Student info */}
-                      <td className="px-5 py-4">
-                        <div className="font-semibold text-slate-900">{student.name || 'Unknown User'}</div>
-                        <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <Mail className="w-3 h-3 text-slate-400" />
-                          {student.email || 'No email'}
-                        </div>
-                        <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <Phone className="w-3 h-3 text-slate-400" />
-                          {student.phone || <span className="text-amber-600 italic">No phone entered</span>}
-                        </div>
-                      </td>
-
-                      {/* Course */}
-                      <td className="px-5 py-4 max-w-xs">
-                        <div className="font-medium text-slate-900 truncate">
-                          {enr.course?.title || 'Unknown Course'}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          Enrolled on {new Date(enr.createdAt).toLocaleDateString()}
-                        </div>
-                      </td>
-
-                      {/* Course type */}
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                          free ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                        }`}>
-                          {courseTypeLabel(enr.course)}
-                        </span>
-                        <div className="text-[11px] text-slate-500 mt-1">
-                          {free ? 'Price on record: ₹0' : formatCoursePrice(enr.course)}
-                        </div>
-                      </td>
-
-                      {/* Payment */}
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase ${toneClass(payment.tone)}`}>
-                          {payment.label}
-                        </span>
-                        {enr.payment ? (
-                          <div className="text-[11px] text-slate-400 mt-1 break-all">
-                            <div>Order: {enr.payment.orderId || '—'}</div>
-                            <div>Payment: {enr.payment.paymentId || 'not captured yet'}</div>
-                          </div>
-                        ) : (
-                          <div className="text-[11px] text-slate-400 mt-1 italic">
-                            {free ? 'No Razorpay order for free enrollments' : 'Awaiting a verified gateway payment'}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Access window */}
-                      <td className="px-5 py-4">
-                        {enr.accessStartDate && enr.accessExpiryDate ? (
-                          <div className="text-xs space-y-0.5">
-                            <div className="text-slate-700">
-                              <span className="font-semibold">Start:</span> {new Date(enr.accessStartDate).toLocaleDateString()}
-                            </div>
-                            <div className="text-slate-700">
-                              <span className="font-semibold">Expires:</span> {new Date(enr.accessExpiryDate).toLocaleDateString()}
-                            </div>
-                            {enr.status === 'approved' && (
-                              <div className="text-emerald-700 font-semibold text-[11px]">
-                                {enr.daysRemaining > 0 ? `${enr.daysRemaining} days remaining` : 'Expiring today'}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400 italic">
-                            Calculated upon approval (3 calendar mos)
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-4">
-                        {getStatusBadge(enr.status)}
-                        {enr.status === 'rejected' && enr.rejectionReason && (
-                          <p className="text-xs text-rose-600 mt-1 max-w-xs italic">
-                            "{enr.rejectionReason}"
-                          </p>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-5 py-4 text-right">
-                        {isPending ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleApprove(enr)}
-                              disabled={isProcessing || paidButUnverified}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition shadow-xs"
-                              title={paidButUnverified
-                                ? 'This is a paid course without a verified payment yet'
-                                : 'Approve student and grant 3-month access'}
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => {
-                                setRejectingEnrollment(enr);
-                                setRejectionReason('');
-                              }}
-                              disabled={isProcessing}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 disabled:opacity-50 transition"
-                              title="Reject enrollment"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                              Reject
-                            </button>
-                          </div>
-                        ) : enr.status === 'rejected' ? (
-                          <button
-                            onClick={() => handleApprove(enr)}
-                            disabled={isProcessing}
-                            className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline"
-                          >
-                            Re-approve
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-400">No action needed</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Reject Modal */}
-      {rejectingEnrollment && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-rose-600" />
-                Reject Enrollment
-              </h3>
+        // For pending enrollments: display direct compact Green Checkmark & Red Cross buttons
+        if (isPending) {
+          return (
+            <div className="flex items-center justify-center gap-2">
               <button
-                onClick={() => setRejectingEnrollment(null)}
-                className="text-slate-400 hover:text-slate-600"
+                type="button"
+                onClick={() => handleApprove(enr)}
+                disabled={isProcessing || paidButUnverified}
+                title={paidButUnverified ? 'Cannot approve: Gateway payment not verified' : 'Approve & Grant Access'}
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 border border-emerald-300 text-emerald-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
               >
-                <X className="w-5 h-5" />
+                <Check className="w-4 h-4 stroke-[2.5]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRejectingEnrollment(enr);
+                  setRejectionReason('');
+                }}
+                disabled={isProcessing}
+                title="Reject Enrollment"
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-50 hover:bg-rose-100 active:bg-rose-200 border border-rose-300 text-rose-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
+          );
+        }
 
-            <p className="text-sm text-slate-600">
-              You are rejecting enrollment for <strong className="text-slate-900">{studentOf(rejectingEnrollment).name}</strong> in{' '}
-              <strong className="text-slate-900">{rejectingEnrollment.course?.title}</strong>. Please provide a reason for the student.
-            </p>
-
-            <form onSubmit={submitReject} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Rejection Reason
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="e.g., Payment verification mismatch, incomplete profile details, or duplicate enrollment..."
-                  className="w-full text-sm border border-slate-300 rounded-xl p-3 focus:outline-hidden focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
+        // For other status tabs (Approved / Rejected / Expired): provide secondary action buttons without overflowing
+        if (enr.status === 'rejected' || enr.status === 'expired') {
+          return (
+            <div className="flex items-center justify-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleApprove(enr)}
+                disabled={isProcessing}
+                title="Re-approve & grant access"
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 transition cursor-pointer shadow-2xs"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              {canDeleteEnrollment(enr) && (
                 <button
                   type="button"
-                  onClick={() => setRejectingEnrollment(null)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                  onClick={() => handleDelete(enr)}
+                  disabled={isProcessing}
+                  title="Delete Request"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-500 hover:text-rose-600 transition cursor-pointer shadow-2xs"
                 >
-                  Cancel
+                  <Trash2 className="w-4 h-4" />
                 </button>
-                <button
-                  type="submit"
-                  disabled={processingId === rejectingEnrollment._id}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition shadow-xs"
-                >
-                  Confirm Rejection
-                </button>
-              </div>
-            </form>
-          </div>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <span className="text-xs text-ink-faint italic select-none">
+            {enr.status === 'approved' ? 'Active' : '—'}
+          </span>
+        );
+      }
+    }
+  ];
+
+  return (
+    <div className="space-y-4 max-w-[1400px] mx-auto">
+      {/* Page intro */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-brand" />
+            Approvals &amp; Access
+          </h1>
+          <p className="text-xs text-ink-soft mt-1">
+            Review free and paid enrollments, verify gateway payments, approve 3-calendar-month access, or reject applications.
+          </p>
         </div>
-      )}
+        {filter === 'pending_approval' && !loading && filteredEnrollments.length > 0 ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-soft border border-warning/20 px-3 py-1 text-xs font-semibold text-[#92400e]">
+            <Clock className="h-3.5 w-3.5" /> {filteredEnrollments.length} pending request{filteredEnrollments.length === 1 ? '' : 's'}
+          </span>
+        ) : null}
+      </div>
+
+      <DataTable
+        columns={columns}
+        rows={filteredEnrollments}
+        loading={loading}
+        error={error}
+        onRetry={fetchEnrollments}
+        minWidthClass="min-w-[980px]"
+        empty={{
+          title: 'No enrollments found',
+          message: `No records match the current filter “${STATUS_FILTERS.find((t) => t.id === filter)?.label || filter}”.`
+        }}
+        toolbar={
+          <>
+            {/* Status filter segmented control */}
+            <div className="flex flex-wrap items-center gap-1 rounded-md bg-canvas border border-line p-0.5">
+              {STATUS_FILTERS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilter(tab.id)}
+                  className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+                    filter === tab.id
+                      ? 'bg-surface text-navy shadow-sm border border-line'
+                      : 'text-ink-soft hover:text-ink border border-transparent'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Search student, email or course…"
+              className="ml-auto w-full max-w-xs"
+            />
+          </>
+        }
+      />
+
+      {/* Reject Modal */}
+      <Modal
+        open={Boolean(rejectingEnrollment)}
+        onClose={() => setRejectingEnrollment(null)}
+        title="Reject Enrollment"
+        description={
+          rejectingEnrollment
+            ? `${studentOf(rejectingEnrollment).name} · ${rejectingEnrollment.course?.title || 'Course'}`
+            : undefined
+        }
+      >
+        <form onSubmit={submitReject} className="space-y-4">
+          <div>
+            <label className="admin-label" htmlFor="rejection-reason">Rejection Reason</label>
+            <textarea
+              id="rejection-reason"
+              required
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="e.g., Payment verification mismatch, incomplete profile details, or duplicate enrollment…"
+              className="admin-input"
+            />
+            <p className="mt-1.5 text-xs text-ink-faint">The student sees this reason in their dashboard and notifications.</p>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <button type="button" onClick={() => setRejectingEnrollment(null)} className={btn('secondary')}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={processingId === rejectingEnrollment?._id}
+              className={btn('danger')}
+            >
+              Confirm Rejection
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
 
 export default EnrollmentsManagementPage;
-
