@@ -19,7 +19,8 @@ import {
   Bell,
   ChevronDown,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Star
 } from 'lucide-react';
 import { FeedbackProvider } from '../components/Feedback';
 import { AdminNotificationsProvider, useAdminNotifications } from '../context/AdminNotificationsContext';
@@ -49,6 +50,7 @@ export const NAV_ITEMS = [
   { label: 'Projects', icon: FolderGit2, path: '/projects' },
   { label: 'Courses', icon: BookOpen, path: '/courses' },
   { label: 'Curriculum Builder', icon: FolderTree, path: '/curriculum' },
+  { label: 'Course Reviews', icon: Star, path: '/course-reviews', badgeKey: 'reviews' },
   { label: 'Student Directory', icon: Users, path: '/users' },
   { label: 'Payments & Refunds', icon: CreditCard, path: '/payments' },
   { label: 'Testimonials', icon: MessageSquareQuote, path: '/testimonials' },
@@ -60,6 +62,7 @@ export const NAV_ITEMS = [
 // Secondary routes not shown in the sidebar still need a sensible title.
 const EXTRA_TITLES = {
   '/materials': 'Course Materials',
+  '/course-reviews': 'Course Reviews',
   '/audit-logs': 'Audit Logs'
 };
 

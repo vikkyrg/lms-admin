@@ -5,14 +5,14 @@ const AdminNotificationsContext = createContext(null);
 
 const POLL_INTERVAL_MS = 20000; // lightweight polling every 20s (no Socket.IO infra available)
 
-const EMPTY_COUNTS = { enrollments: 0, enquiries: 0 };
+const EMPTY_COUNTS = { enrollments: 0, enquiries: 0, reviews: 0 };
 
 export const AdminNotificationsProvider = ({ children }) => {
   const [counts, setCounts] = useState(EMPTY_COUNTS);
   // Real API connectivity signal: true after a successful poll, false on failure.
   const [online, setOnline] = useState(true);
   // Tracks which badge just increased so we can pulse it only on new arrivals.
-  const [bumped, setBumped] = useState({ enrollments: false, enquiries: false });
+  const [bumped, setBumped] = useState({ enrollments: false, enquiries: false, reviews: false });
   const prevCounts = useRef(EMPTY_COUNTS);
   const bumpTimers = useRef({});
 
@@ -22,12 +22,13 @@ export const AdminNotificationsProvider = ({ children }) => {
       setOnline(true);
       const next = {
         enrollments: res.data?.counts?.enrollments ?? 0,
-        enquiries: res.data?.counts?.enquiries ?? 0
+        enquiries: res.data?.counts?.enquiries ?? 0,
+        reviews: res.data?.counts?.reviews ?? 0
       };
       const prev = prevCounts.current;
 
       // Pulse only when a count grows (a genuinely new notification arrived).
-      ['enrollments', 'enquiries'].forEach((key) => {
+      ['enrollments', 'enquiries', 'reviews'].forEach((key) => {
         if (next[key] > prev[key]) {
           setBumped((b) => ({ ...b, [key]: true }));
           clearTimeout(bumpTimers.current[key]);
@@ -64,6 +65,15 @@ export const AdminNotificationsProvider = ({ children }) => {
     }
   }, [refresh]);
 
+  const markReviewsRead = useCallback(async () => {
+    try {
+      await api.post('/reviews/admin/mark-read');
+      await refresh();
+    } catch (err) {
+      console.error('Failed to mark review notifications read', err);
+    }
+  }, [refresh]);
+
   useEffect(() => {
     refresh();
     const interval = setInterval(refresh, POLL_INTERVAL_MS);
@@ -81,7 +91,7 @@ export const AdminNotificationsProvider = ({ children }) => {
     };
   }, [refresh]);
 
-  const value = { counts, bumped, online, refresh, markEnrollmentsRead, markEnquiriesRead };
+  const value = { counts, bumped, online, refresh, markEnrollmentsRead, markEnquiriesRead, markReviewsRead };
 
   return <AdminNotificationsContext.Provider value={value}>{children}</AdminNotificationsContext.Provider>;
 };

@@ -21,6 +21,7 @@ import FaqManagementPage from './pages/FaqManagementPage';
 import AdminPaymentsPage from './pages/AdminPaymentsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import RoadmapManagementPage from './pages/RoadmapManagementPage';
+import CourseReviewsPage from './pages/CourseReviewsPage';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="projects" element={<ProjectsManagementPage />} />
             <Route path="courses" element={<CourseManagementPage />} />
             <Route path="curriculum" element={<CurriculumBuilderPage />} />
+            <Route path="course-reviews" element={<CourseReviewsPage />} />
             <Route path="roadmap" element={<Navigate to="/projects" replace />} />
             <Route path="users" element={<UsersManagementPage />} />
             <Route path="payments" element={<AdminPaymentsPage />} />

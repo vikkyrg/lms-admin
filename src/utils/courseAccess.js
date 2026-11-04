@@ -48,17 +48,20 @@ export const paymentSummary = (enrollment) => {
   const payment = enrollment?.payment;
 
   if (!payment) {
-    return free
-      ? { label: 'Not Required · Free Enrollment', tone: 'neutral' }
-      : { label: 'No verified payment yet', tone: 'warning' };
+    if (free) return { label: 'Free Enrollment', tone: 'neutral' };
+    const priceText = formatCoursePrice(enrollment?.course);
+    return { label: `${priceText} · Pending Verification`, tone: 'warning' };
   }
 
-  const amount = formatIndianRupee(Number(payment.amount) || 0);
+  const amount = formatIndianRupee(Number(payment.amount) || Number(enrollment?.coursePrice) || resolvePrice(enrollment?.course));
   switch (payment.status) {
+    case 'verified':
     case 'completed':
       return { label: `Paid ${amount} · Verified`, tone: 'success' };
+    case 'pending_verification':
+      return { label: `${amount} · Pending Verification`, tone: 'warning' };
     case 'created':
-      return { label: `${amount} · Checkout started, unverified`, tone: 'warning' };
+      return { label: `${amount} · Pending Verification`, tone: 'warning' };
     case 'failed':
       return { label: `${amount} · Failed`, tone: 'danger' };
     case 'refunded':

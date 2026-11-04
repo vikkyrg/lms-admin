@@ -53,6 +53,10 @@ const EnrollmentsManagementPage = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [processingId, setProcessingId] = useState(null);
 
+  // Approval modal state (with optional payment reference)
+  const [approvingEnrollment, setApprovingEnrollment] = useState(null);
+  const [paymentReference, setPaymentReference] = useState('');
+
   const fetchEnrollments = async () => {
     try {
       setLoading(true);
@@ -79,23 +83,29 @@ const EnrollmentsManagementPage = () => {
     markEnrollmentsRead();
   }, [markEnrollmentsRead]);
 
-  const handleApprove = async (enrollment) => {
-    const ok = await confirm({
-      title: 'Approve Enrollment & Grant 3-Month Access?',
-      message: `Are you sure you want to approve ${studentOf(enrollment).name || 'this student'} for "${enrollment.course?.title}"? This will activate their access for exactly 3 calendar months starting today.`
-    });
+  const handleApprove = (enrollment) => {
+    setApprovingEnrollment(enrollment);
+    setPaymentReference(enrollment.payment?.transactionReference || enrollment.transactionReference || '');
+  };
 
-    if (!ok) return;
+  const submitApprove = async (e) => {
+    e.preventDefault();
+    if (!approvingEnrollment) return;
 
     try {
-      setProcessingId(enrollment._id);
-      const res = await api.put(`/enrollments/admin/${enrollment._id}/approve`);
+      setProcessingId(approvingEnrollment._id);
+      const res = await api.put(`/enrollments/admin/${approvingEnrollment._id}/approve`, {
+        transactionReference: paymentReference.trim(),
+        paymentVerified: true
+      });
       if (res.data.success) {
         notify({
           type: 'success',
-          title: 'Enrollment Approved',
-          message: `Access granted until ${new Date(res.data.data.accessExpiryDate).toLocaleDateString()}`
+          title: 'Enrollment & Payment Approved',
+          message: `Access granted until ${new Date(res.data.data?.accessExpiryDate || res.data.enrollment?.accessExpiryDate).toLocaleDateString()}`
         });
+        setApprovingEnrollment(null);
+        setPaymentReference('');
         fetchEnrollments();
       }
     } catch (err) {
@@ -310,8 +320,8 @@ const EnrollmentsManagementPage = () => {
               <button
                 type="button"
                 onClick={() => handleApprove(enr)}
-                disabled={isProcessing || paidButUnverified}
-                title={paidButUnverified ? 'Cannot approve: Gateway payment not verified' : 'Approve & Grant Access'}
+                disabled={isProcessing}
+                title={!isFreeCourse(enr.course) ? 'Verify Payment & Approve' : 'Approve & Grant Access'}
                 className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 border border-emerald-300 text-emerald-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
               >
                 <Check className="w-4 h-4 stroke-[2.5]" />
@@ -427,6 +437,79 @@ const EnrollmentsManagementPage = () => {
           </>
         }
       />
+
+      {/* Approve & Payment Verification Modal */}
+      <Modal
+        open={Boolean(approvingEnrollment)}
+        onClose={() => setApprovingEnrollment(null)}
+        title={!isFreeCourse(approvingEnrollment?.course) ? 'Verify Payment & Approve Enrollment' : 'Approve Free Enrollment'}
+        description={
+          approvingEnrollment
+            ? `${studentOf(approvingEnrollment).name || 'Student'} · ${approvingEnrollment.course?.title || 'Course'}`
+            : undefined
+        }
+      >
+        <form onSubmit={submitApprove} className="space-y-4">
+          <div className="bg-canvas border border-line rounded-xl p-3.5 space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-ink-soft">Course:</span>
+              <strong className="text-ink text-right">{approvingEnrollment?.course?.title}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-soft">Course Fee:</span>
+              <strong className="text-navy">{formatCoursePrice(approvingEnrollment?.course)}</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-soft">Student:</span>
+              <span className="text-ink">{studentOf(approvingEnrollment).name} ({studentOf(approvingEnrollment).email})</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-soft">Access Duration:</span>
+              <span className="text-success font-semibold">3 Calendar Months (from today)</span>
+            </div>
+          </div>
+
+          {!isFreeCourse(approvingEnrollment?.course) && (
+            <div>
+              <label className="admin-label" htmlFor="payment-ref">
+                Transaction / Payment Reference (Optional)
+              </label>
+              <input
+                id="payment-ref"
+                type="text"
+                value={paymentReference}
+                onChange={(e) => setPaymentReference(e.target.value)}
+                placeholder="e.g., UPI Ref: 428198273618 or Bank UTR"
+                className="admin-input"
+              />
+              <p className="mt-1 text-xs text-ink-faint">
+                Confirm that payment has been received and verified externally.
+              </p>
+            </div>
+          )}
+
+          <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-xs text-emerald-900 leading-relaxed">
+            By confirming, payment status will be marked <strong>Verified</strong>, enrollment status will become <strong>Approved</strong>, and the student's 3-month access will activate immediately.
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setApprovingEnrollment(null)}
+              className={btn('secondary')}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={processingId === approvingEnrollment?._id}
+              className={btn('primary')}
+            >
+              {processingId === approvingEnrollment?._id ? 'Approving...' : 'Confirm & Activate Access'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Reject Modal */}
       <Modal
