@@ -14,6 +14,7 @@ import ProjectsManagementPage from './pages/ProjectsManagementPage';
 import CourseManagementPage from './pages/CourseManagementPage';
 import CurriculumBuilderPage from './pages/CurriculumBuilderPage';
 import UsersManagementPage from './pages/UsersManagementPage';
+import StudentDetailsPage from './pages/StudentDetailsPage';
 import EnquiriesPage from './pages/EnquiriesPage';
 import TestimonialsManagementPage from './pages/TestimonialsManagementPage';
 import VideoTestimonialsManagementPage from './pages/VideoTestimonialsManagementPage';
@@ -42,6 +43,7 @@ function App() {
             <Route path="course-reviews" element={<CourseReviewsPage />} />
             <Route path="roadmap" element={<Navigate to="/projects" replace />} />
             <Route path="users" element={<UsersManagementPage />} />
+            <Route path="users/:studentId" element={<StudentDetailsPage />} />
             <Route path="payments" element={<AdminPaymentsPage />} />
             <Route path="audit-logs" element={<AuditLogsPage />} />
             <Route path="testimonials" element={<TestimonialsManagementPage />} />
