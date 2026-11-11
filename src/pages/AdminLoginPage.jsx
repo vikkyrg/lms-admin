@@ -22,7 +22,7 @@ const AdminLoginPage = () => {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || err.response?.data?.message || 'Invalid credentials or unauthorized role.');
+      setError(err.response?.data?.message || err.message || 'Invalid credentials or unauthorized role.');
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ const AdminLoginPage = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@lms.com"
+                placeholder="Administrative email"
                 className="admin-input pl-9"
               />
             </div>
@@ -92,12 +92,6 @@ const AdminLoginPage = () => {
           </button>
         </form>
 
-        <div className="px-4 py-3 bg-canvas border border-line rounded-md text-xs text-ink-soft space-y-1.5">
-          <p className="font-semibold text-ink">Available Demo Credentials:</p>
-          <p className="text-[11px] leading-relaxed">
-            Administrator: <span className="font-medium text-ink">admin@lms.com</span> · <span className="font-medium text-ink">admin123</span>
-          </p>
-        </div>
       </div>
     </div>
   );

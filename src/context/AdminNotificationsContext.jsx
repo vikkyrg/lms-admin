@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+import { useAdminAuth } from './AdminAuthContext';
 
 const AdminNotificationsContext = createContext(null);
 
@@ -8,18 +9,21 @@ const POLL_INTERVAL_MS = 20000; // lightweight polling every 20s (no Socket.IO i
 const EMPTY_COUNTS = { enrollments: 0, enquiries: 0, reviews: 0 };
 
 export const AdminNotificationsProvider = ({ children }) => {
+  const { isAuthenticated, logout } = useAdminAuth();
   const [counts, setCounts] = useState(EMPTY_COUNTS);
-  // Real API connectivity signal: true after a successful poll, false on failure.
-  const [online, setOnline] = useState(true);
+  const [online, setOnline] = useState(false);
+  const [error, setError] = useState(null);
   // Tracks which badge just increased so we can pulse it only on new arrivals.
   const [bumped, setBumped] = useState({ enrollments: false, enquiries: false, reviews: false });
   const prevCounts = useRef(EMPTY_COUNTS);
   const bumpTimers = useRef({});
 
   const refresh = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
       const res = await api.get('/admin/notifications/counts');
       setOnline(true);
+      setError(null);
       const next = {
         enrollments: res.data?.counts?.enrollments ?? 0,
         enquiries: res.data?.counts?.enquiries ?? 0,
@@ -41,11 +45,15 @@ export const AdminNotificationsProvider = ({ children }) => {
       prevCounts.current = next;
       setCounts(next);
     } catch (err) {
-      // Silently ignore polling errors (e.g. transient network / 401 redirect).
       setOnline(false);
-      console.error('Failed to refresh notification counts', err);
+      setError(err.response?.data?.message || err.message || 'Failed to load notification counts.');
+      if (err.response?.status === 401) {
+        logout();
+      } else {
+        console.error('Failed to refresh notification counts', err);
+      }
     }
-  }, []);
+  }, [isAuthenticated, logout]);
 
   const markEnrollmentsRead = useCallback(async () => {
     try {
@@ -75,6 +83,14 @@ export const AdminNotificationsProvider = ({ children }) => {
   }, [refresh]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setCounts(EMPTY_COUNTS);
+      setOnline(false);
+      setError(null);
+      prevCounts.current = EMPTY_COUNTS;
+      return undefined;
+    }
+
     refresh();
     const interval = setInterval(refresh, POLL_INTERVAL_MS);
 
@@ -89,9 +105,9 @@ export const AdminNotificationsProvider = ({ children }) => {
       document.removeEventListener('visibilitychange', onVisible);
       Object.values(bumpTimers.current).forEach(clearTimeout);
     };
-  }, [refresh]);
+  }, [isAuthenticated, refresh]);
 
-  const value = { counts, bumped, online, refresh, markEnrollmentsRead, markEnquiriesRead, markReviewsRead };
+  const value = { counts, bumped, online, error, refresh, markEnrollmentsRead, markEnquiriesRead, markReviewsRead };
 
   return <AdminNotificationsContext.Provider value={value}>{children}</AdminNotificationsContext.Provider>;
 };
