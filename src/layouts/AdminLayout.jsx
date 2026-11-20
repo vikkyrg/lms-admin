@@ -20,7 +20,8 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
-  Star
+  Star,
+  Megaphone
 } from 'lucide-react';
 import { FeedbackProvider } from '../components/Feedback';
 import { AdminNotificationsProvider, useAdminNotifications } from '../context/AdminNotificationsContext';
@@ -46,6 +47,7 @@ const NotificationBadge = ({ count, pulse, className = '' }) => {
 
 export const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { label: 'Website Popup', icon: Megaphone, path: '/website-popup' },
   { label: 'Approvals & Access', icon: UserCheck, path: '/enrollments', badgeKey: 'enrollments' },
   { label: 'Projects', icon: FolderGit2, path: '/projects' },
   { label: 'Courses', icon: BookOpen, path: '/courses' },
@@ -63,7 +65,8 @@ export const NAV_ITEMS = [
 const EXTRA_TITLES = {
   '/materials': 'Course Materials',
   '/course-reviews': 'Course Reviews',
-  '/audit-logs': 'Audit Logs'
+  '/audit-logs': 'Audit Logs',
+  '/website-popup': 'Website Popup'
 };
 
 const titleForPath = (pathname) => {

@@ -23,6 +23,7 @@ import AdminPaymentsPage from './pages/AdminPaymentsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import RoadmapManagementPage from './pages/RoadmapManagementPage';
 import CourseReviewsPage from './pages/CourseReviewsPage';
+import AdminWebsitePopup from './pages/AdminWebsitePopup';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/" element={<AdminLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="website-popup" element={<AdminWebsitePopup />} />
             <Route path="enrollments" element={<EnrollmentsManagementPage />} />
             <Route path="materials" element={<CourseMaterialsPage />} />
             <Route path="projects" element={<ProjectsManagementPage />} />
